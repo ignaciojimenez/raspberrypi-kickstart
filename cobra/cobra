@@ -34,6 +34,7 @@ ssh-copy-id ${cobra_original_user}@${cobra_original_ip}
 ssh ${cobra_original_user}@${cobra_original_ip} sudo systemctl stop plexmediaserver
 ssh ${cobra_original_user}@${cobra_original_ip} sudo tar cfz PlexBackup.tar.gz /var/lib/plexmediaserver/Library
 scp ${cobra_original_user}@${cobra_original_ip}:PlexBackup.tar.gz .
+
 echo "------------------------------------------------------"
 echo "Backup done and copied to local pi, now cloning old library"
 echo "------------------------------------------------------"
@@ -95,21 +96,21 @@ git config --global user.email "i.jimenezpi@gmail.com"
 git config --global user.name "Choco"
 #cloning cobra git repo
 git clone https://github.com/ignaciojimenez/cobra.git
-mv cobra/ .cobra/
+mv cobra/ ~/.cobra/
 
 echo "------------------------------------------------------"
 echo "Creating log and auth folders"
 echo "------------------------------------------------------"
 #create logs and auth dirs creation
-mkdir .cobra/logs
-mkdir .cobra/auth
+mkdir ~/.cobra/logs
+mkdir ~/.cobra/auth
 
 echo "------------------------------------------------------"
 echo "Moving auth files"
 echo "------------------------------------------------------"
 #move auth files
-mv *.ini .cobra/auth
-sudo chown -R ${USER}:${USER} .cobra/auth
+mv ~/*.ini ~/.cobra/auth
+sudo chown -R ${USER}:${USER} ~/.cobra/auth
 
 echo "------------------------------------------------------"
 echo "Modifying crontab"

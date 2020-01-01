@@ -16,16 +16,7 @@ echo
 generic_pwd="chocotemp"
 
 case "$1" in
-  "pihole")
-    script_location="$1/$1"
-    echo "Starting a $1 installation"
-    ;;
-  "cobra")
-    script_location="$1/$1"
-    echo "Starting a $1 installation"
-    ;;
-  "hifipi")
-    script_location="$1/$1"
+  "pihole"|"cobra"|"hifipi")
     echo "Starting a $1 installation"
     ;;
   *)
@@ -103,7 +94,7 @@ echo "Importing update script from gist and adding it to crontab"
 echo "------------------------------------------------------"
 #downloading update.sh script
 cp common/update ~
-sudo chmod +x update
+sudo chmod +x ~/update
 #install crontab to create system autoupdates
 echo "$(echo '30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1' ; crontab -u ${USER} -l)" | crontab -u ${USER} -
 
@@ -111,7 +102,7 @@ echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"
 echo "------------------------------------------------------"
 #changing access to bashrc
-chmod 600 .bashrc
+chmod 600 ~/.bashrc
 
 echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"

@@ -24,7 +24,9 @@ scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/whitelist.txt .
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/blacklist.txt .
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/wildcardblocking.txt .
 sudo mkdir /etc/pihole
-sudo mv -f *.txt /etc/pihole/
+sudo mv -f wildcardblocking.txt /etc/pihole/
+sudo mv -f whitelist.txt /etc/pihole/
+sudo mv -f blacklist.txt /etc/pihole/
 sudo mv -f adlists.list /etc/pihole/
 sudo mv -f setupVars.conf /etc/pihole/
 sudo cp -r dnsmasq.d/* /etc/dnsmasq.d/
@@ -45,7 +47,7 @@ sudo apt --yes install openvpn
 # getting the conf from the gist
 sudo cp pvpn.conf /etc/openvpn/pvpn.conf
 # Moving login info to etc
-sudo mv pvpnpass /etc/openvpn/
+sudo mv ~/pvpnpass /etc/openvpn/
 # Protect the vpn login info
 sudo chmod 400 /etc/openvpn/pvpnpass
 # Making openvpn to Autostart
