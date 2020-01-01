@@ -9,7 +9,7 @@
 
 echo
 echo "------------------------------------------------------"
-echo "Beginning Pot-install generic script"
+echo "Beginning Post-install generic script"
 echo "------------------------------------------------------"
 echo
 
@@ -17,17 +17,19 @@ generic_pwd="chocotemp"
 
 case "$1" in
   "pihole")
-    script_url="https://gist.githubusercontent.com/ignaciojimenez/8bc78d2fb7586b58c891feb54d60c84e/raw/"
+    script_location="$1/$1"
+    echo "Starting a $1 installation"
     ;;
   "cobra")
-    script_url="https://gist.githubusercontent.com/ignaciojimenez/2477afbb1abed1ef940764629f5a96a3/raw/"
+    script_location="$1/$1"
+    echo "Starting a $1 installation"
     ;;
   "hifipi")
-    echo "Not implemented yet"
-    exit 1
+    script_location="$1/$1"
+    echo "Starting a $1 installation"
     ;;
   *)
-    echo "You have failed to specify which kind of pi do you want to configure"
+    echo "You have failed to specify which kind of pi do you want to configure or provided a wrong installation"
     exit 1
     ;;
 esac
@@ -115,10 +117,7 @@ echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"
 echo "------------------------------------------------------"
 #executing custom script for the type of installation desired
-curl ${script_url} -o ~/custom_script
-chmod 755 ~/custom_script
-source ~/custom_script
-rm ~/custom_script
+source script_location
 
 echo "------------------------------------------------------"
 echo "Custom script finished"
