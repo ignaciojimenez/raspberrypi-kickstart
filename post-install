@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# 
+# Script to kickstart raspberry pi-s client specific configurations
+
+# set -o errexit
+# set -o pipefail
+# set -o nounset
+# set -o xtrace
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning Pot-install generic script"
+echo "------------------------------------------------------"
+echo
+
+generic_pwd="chocotemp"
+
+case "$1" in
+  "pihole")
+    script_url="https://gist.githubusercontent.com/ignaciojimenez/8bc78d2fb7586b58c891feb54d60c84e/raw/"
+    ;;
+  "cobra")
+    script_url="https://gist.githubusercontent.com/ignaciojimenez/2477afbb1abed1ef940764629f5a96a3/raw/"
+    ;;
+  "hifipi")
+    echo "Not implemented yet"
+    exit 1
+    ;;
+  *)
+    echo "You have failed to specify which kind of pi do you want to configure"
+    exit 1
+    ;;
+esac
+
+echo "------------------------------------------------------"
+echo "Adding the user to the sudoers"
+echo "------------------------------------------------------"
+#adding the user to the sudoers
+echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
+
+echo "------------------------------------------------------"
+echo "Updating and upgrading to start"
+echo "------------------------------------------------------"
+#update apt packages
+sudo apt --yes update && sudo apt --yes upgrade -y && sudo apt --yes full-upgrade
+
+# echo "Disabling bluetooth"
+# echo
+# disable bluetooth daemon - not necessary in current setup
+# sudo systemctl disable hciuart.service
+# sudo systemctl disable bluealsa.service
+# sudo systemctl disable bluetooth.service
+
+echo "------------------------------------------------------"
+echo "Disable root login on sshd and on different layers"
+echo "------------------------------------------------------"
+#disable root login on sshd and on different layers
+sudo sed -i "s/.*#PermitRootLogin.*/PermitRootLogin no/g" /etc/ssh/sshd_config
+sudo passwd --lock root
+sudo passwd -d root
+
+echo "------------------------------------------------------"
+echo "Chaging user password to random value"
+echo "------------------------------------------------------"
+#change user password
+rndpwd=$(openssl rand -base64 45)
+echo "${rndpwd}" > ~/pwd
+chmod 600 ~/pwd
+echo -e "${generic_pwd}\n${rndpwd}\n${rndpwd}" | passwd
+#passwd
+
+echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+#disabling the screen of the pi on boot via init.d script
+sudo curl https://gist.githubusercontent.com/ignaciojimenez/8699627d6c539a2b4d32510fc983a5bd/raw/ -o /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
+
+echo "------------------------------------------------------"
+echo "Creating SSH key pair"
+echo "------------------------------------------------------"
+#creating the ssh key
+mkdir ~/.ssh
+chmod 700 ~/.ssh/
+#rndpwd=$(openssl rand -base64 45)
+#echo "${rndpwd}" > ~/.ssh/pwd
+#chmod 600 ~/.ssh/pwd
+ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N ""
+#ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
+
+echo "------------------------------------------------------"
+echo "Importing authorized_keys from gist"
+echo "------------------------------------------------------"
+#importing authorized_keys from gist
+curl https://gist.githubusercontent.com/ignaciojimenez/5acd26bb0911849e71591da5baca710d/raw/ -o ~/.ssh/authorized_keys
+chmod 644 ~/.ssh/authorized_keys
+
+echo "------------------------------------------------------"
+echo "Importing update script from gist and adding it to crontab"
+echo "------------------------------------------------------"
+#downloading update.sh script
+curl https://gist.githubusercontent.com/ignaciojimenez/155b3ddb2e0321e0bbd20bac6c5c8e19/raw/ -o update
+sudo chmod +x update
+#install crontab to create system autoupdates
+echo "$(echo '30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1' ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+
+echo "------------------------------------------------------"
+echo "Restricting bashrc permissions"
+echo "------------------------------------------------------"
+#changing access to bashrc
+chmod 600 .bashrc
+
+echo "------------------------------------------------------"
+echo "Now executing specific script for system: $1"
+echo "------------------------------------------------------"
+#executing custom script for the type of installation desired
+curl ${script_url} -o ~/custom_script
+chmod 755 ~/custom_script
+source ~/custom_script
+rm ~/custom_script
+
+echo "------------------------------------------------------"
+echo "Custom script finished"
+echo "Cleaning apt cache"
+echo "------------------------------------------------------"
+#upgrade and clean installations
+sudo apt autoremove
+sudo apt-get autoclean
+sudo apt-get clean
