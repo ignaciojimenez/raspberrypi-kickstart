@@ -75,7 +75,7 @@ echo "------------------------------------------------------"
 echo "Disabling the screen of the pi on boot via init.d script"
 echo "------------------------------------------------------"
 #disabling the screen of the pi on boot via init.d script
-sudo curl https://gist.githubusercontent.com/ignaciojimenez/8699627d6c539a2b4d32510fc983a5bd/raw/ -o /etc/init.d/tvoff
+sudo cp common/tvoff /etc/init.d/tvoff
 sudo chmod 755 /etc/init.d/tvoff
 sudo update-rc.d tvoff defaults
 
@@ -95,14 +95,14 @@ echo "------------------------------------------------------"
 echo "Importing authorized_keys from gist"
 echo "------------------------------------------------------"
 #importing authorized_keys from gist
-curl https://gist.githubusercontent.com/ignaciojimenez/5acd26bb0911849e71591da5baca710d/raw/ -o ~/.ssh/authorized_keys
+cp common/authorized_keys ~/.ssh/authorized_keys
 chmod 644 ~/.ssh/authorized_keys
 
 echo "------------------------------------------------------"
 echo "Importing update script from gist and adding it to crontab"
 echo "------------------------------------------------------"
 #downloading update.sh script
-curl https://gist.githubusercontent.com/ignaciojimenez/155b3ddb2e0321e0bbd20bac6c5c8e19/raw/ -o update
+cp common/update ~
 sudo chmod +x update
 #install crontab to create system autoupdates
 echo "$(echo '30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1' ; crontab -u ${USER} -l)" | crontab -u ${USER} -
@@ -117,7 +117,9 @@ echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"
 echo "------------------------------------------------------"
 #executing custom script for the type of installation desired
-source script_location
+cd $1
+source $1
+cd ..
 
 echo "------------------------------------------------------"
 echo "Custom script finished"

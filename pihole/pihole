@@ -43,7 +43,7 @@ echo "------------------------------------------------------"
 #installing needed packages for the vpn tunnel and gateway
 sudo apt --yes install openvpn
 # getting the conf from the gist
-sudo wget "https://gist.githubusercontent.com/ignaciojimenez/735d3d9d76cedb4722ae35166563b800/raw/" -O "/etc/openvpn/pvpn.conf"
+sudo cp pvpn.conf /etc/openvpn/pvpn.conf
 # Moving login info to etc
 sudo mv pvpnpass /etc/openvpn/
 # Protect the vpn login info

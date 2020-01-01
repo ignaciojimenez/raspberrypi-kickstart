@@ -68,7 +68,7 @@ sudo apt --yes install transmission-daemon
 sudo systemctl stop transmission-daemon
 # creating a copy of the original settings
 sudo mv /etc/transmission-daemon/settings.json /etc/transmission-daemon/settings_old.json
-sudo curl https://gist.githubusercontent.com/ignaciojimenez/9fe7e751c0f66251868ee60e9d58a7e6/raw/ -o /etc/transmission-daemon/settings.json
+sudo cp settings.json /etc/transmission-daemon/settings.json
 sudo chown debian-transmission:debian-transmission /etc/transmission-daemon/settings.json
 sudo systemctl start transmission-daemon
 
