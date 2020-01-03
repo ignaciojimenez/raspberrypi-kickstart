@@ -83,20 +83,20 @@ ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q
 #ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
 
 echo "------------------------------------------------------"
-echo "Importing authorized_keys from gist"
+echo "Copying authorized_keys"
 echo "------------------------------------------------------"
 #importing authorized_keys from gist
 cp common/authorized_keys ~/.ssh/authorized_keys
 chmod 644 ~/.ssh/authorized_keys
 
 echo "------------------------------------------------------"
-echo "Importing update script from gist and adding it to crontab"
+echo "Moving update script to ${HOME} and it to crontab"
 echo "------------------------------------------------------"
 #downloading update.sh script
 cp common/update ~
 sudo chmod +x ~/update
 #install crontab to create system autoupdates
-echo "$(echo '30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1' ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
 
 echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"
