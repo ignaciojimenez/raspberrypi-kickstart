@@ -17,20 +17,18 @@ echo "------------------------------------------------------"
 # copying all the pihole configs
 # copying the ssh public key
 ssh-copy-id ${pihole_original_user}@${pihole_original_ip}
-scp -r ${pihole_original_user}@${pihole_original_ip}:/etc/dnsmasq.d/ .
-scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/setupVars.conf .
-scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/adlists.list .
-scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/whitelist.txt .
-scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/blacklist.txt .
-scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/wildcardblocking.txt .
-sudo mkdir /etc/pihole
-sudo mv -f wildcardblocking.txt /etc/pihole/
-sudo mv -f whitelist.txt /etc/pihole/
-sudo mv -f blacklist.txt /etc/pihole/
-sudo mv -f adlists.list /etc/pihole/
-sudo mv -f setupVars.conf /etc/pihole/
-sudo cp -r dnsmasq.d/* /etc/dnsmasq.d/
-sudo rm -rf dnsmasq.d/
+mkdir ~/pihole
+scp -r ${pihole_original_user}@${pihole_original_ip}:/etc/dnsmasq.d/ ~/
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/setupVars.conf ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/adlists.list ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/whitelist.txt ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/blacklist.txt ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/wildcardblocking.txt ~/pihole
+
+sudo mv ~/pihole/ /etc/
+sudo mv ~/dnsmasq.d/ /etc/
+#sudo chown pihole:pihole /etc/pihole/
+sudo chown -R root:root /etc/dnsmasq.d/
 
 echo "------------------------------------------------------"
 echo "Installing pihole"
