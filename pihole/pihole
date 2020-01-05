@@ -8,7 +8,7 @@ echo "Beginning Pihole script"
 echo "------------------------------------------------------"
 echo
 
-pihole_original_ip="192.168.2.200"
+pihole_original_ip="192.168.2.90"
 pihole_original_user="pi"
 
 echo "------------------------------------------------------"
