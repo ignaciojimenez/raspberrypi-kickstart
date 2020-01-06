@@ -33,7 +33,9 @@ sudo chown -R root:root /etc/dnsmasq.d/
 echo "------------------------------------------------------"
 echo "Installing pihole"
 echo "------------------------------------------------------"
-#install pihole
+# installing pihole required package
+sudo apt install bc
+# install pihole
 curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
 
 
