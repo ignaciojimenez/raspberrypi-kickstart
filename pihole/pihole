@@ -42,7 +42,9 @@ curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
 if [[ -z $(type -p $(pihole) &> /dev/null ) ]]; then
   # if not, modify /etc/resolv.conf and retry
   echo "------------------------------------------------------"
-  echo "Retrying pihole installation"
+  echo "Retrying pihole installation in 10 seconds, please wait..."
+  sleep 10
+  echo "Now proceeding with pihole installation retry"
   echo "------------------------------------------------------"
   echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
   curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
