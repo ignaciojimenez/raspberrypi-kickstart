@@ -28,13 +28,13 @@ esac
 echo "------------------------------------------------------"
 echo "Adding the user to the sudoers"
 echo "------------------------------------------------------"
-#adding the user to the sudoers
+# adding the user to the sudoers
 echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
 
 echo "------------------------------------------------------"
 echo "Updating and upgrading to start"
 echo "------------------------------------------------------"
-#update apt packages
+# update apt packages
 sudo apt --yes update && sudo apt --yes upgrade -y
 
 # echo "Disabling bluetooth"
@@ -47,7 +47,7 @@ sudo apt --yes update && sudo apt --yes upgrade -y
 echo "------------------------------------------------------"
 echo "Disable root login on sshd and on different layers"
 echo "------------------------------------------------------"
-#disable root login on sshd and on different layers
+# disable root login on sshd and on different layers
 sudo sed -i "s/.*#PermitRootLogin.*/PermitRootLogin no/g" /etc/ssh/sshd_config
 sudo passwd --lock root
 sudo passwd -d root
@@ -55,17 +55,16 @@ sudo passwd -d root
 echo "------------------------------------------------------"
 echo "Chaging user password to random value"
 echo "------------------------------------------------------"
-#change user password
+# change user password
 rndpwd=$(openssl rand -base64 45)
 echo "${rndpwd}" > ~/pwd
 chmod 600 ~/pwd
 echo -e "${generic_pwd}\n${rndpwd}\n${rndpwd}" | passwd
-#passwd
 
 echo "------------------------------------------------------"
 echo "Disabling the screen of the pi on boot via init.d script"
 echo "------------------------------------------------------"
-#disabling the screen of the pi on boot via init.d script
+# disabling the screen of the pi on boot via init.d script
 sudo cp common/tvoff /etc/init.d/tvoff
 sudo chmod 755 /etc/init.d/tvoff
 sudo update-rc.d tvoff defaults
@@ -73,41 +72,42 @@ sudo update-rc.d tvoff defaults
 echo "------------------------------------------------------"
 echo "Creating SSH key pair"
 echo "------------------------------------------------------"
-#creating the ssh key
+# creating the ssh key
 mkdir ~/.ssh
 chmod 700 ~/.ssh/
-#rndpwd=$(openssl rand -base64 45)
-#echo "${rndpwd}" > ~/.ssh/pwd
-#chmod 600 ~/.ssh/pwd
+# Disabled creating an ssh passphrase - I know I know
+# rndpwd=$(openssl rand -base64 45)
+# echo "${rndpwd}" > ~/.ssh/pwd
+# chmod 600 ~/.ssh/pwd
 ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N ""
 #ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
 
 echo "------------------------------------------------------"
 echo "Copying authorized_keys"
 echo "------------------------------------------------------"
-#importing authorized_keys from gist
+# importing authorized_keys from gist - Reassess if this is a good idea
 cp common/authorized_keys ~/.ssh/authorized_keys
 chmod 644 ~/.ssh/authorized_keys
 
 echo "------------------------------------------------------"
 echo "Moving update script to ${HOME} and it to crontab"
 echo "------------------------------------------------------"
-#downloading update.sh script
+# downloading update.sh script
 cp common/update ~
 sudo chmod +x ~/update
-#install crontab to create system autoupdates
+# install crontab to create system autoupdates
 echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/cron.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
 
 echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"
 echo "------------------------------------------------------"
-#changing access to bashrc
+# changing access to bashrc
 chmod 600 ~/.bashrc
 
 echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"
 echo "------------------------------------------------------"
-#executing custom script for the type of installation desired
+# executing custom script for the type of installation desired
 cd $1
 source $1
 cd ..
@@ -116,7 +116,7 @@ echo "------------------------------------------------------"
 echo "Custom script finished"
 echo "Cleaning apt cache"
 echo "------------------------------------------------------"
-#upgrade and clean installations
+# upgrade and clean installations
 sudo apt --yes full-upgrade
 sudo apt autoremove
 sudo apt-get autoclean
