@@ -35,7 +35,7 @@ echo "------------------------------------------------------"
 echo "Updating and upgrading to start"
 echo "------------------------------------------------------"
 #update apt packages
-sudo apt --yes update && sudo apt --yes upgrade -y && sudo apt --yes full-upgrade
+sudo apt --yes update && sudo apt --yes upgrade -y
 
 # echo "Disabling bluetooth"
 # echo
@@ -117,6 +117,11 @@ echo "Custom script finished"
 echo "Cleaning apt cache"
 echo "------------------------------------------------------"
 #upgrade and clean installations
+sudo apt --yes full-upgrade
 sudo apt autoremove
 sudo apt-get autoclean
 sudo apt-get clean
+
+echo "------------------------------------------------------"
+echo "Installation finished. Please reboot manually..."
+echo "------------------------------------------------------"
