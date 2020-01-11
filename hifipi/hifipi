@@ -23,6 +23,8 @@ make
 sudo make install
 sudo systemctl enable shairport-sync
 amixer sset PCM,0 100%
+cd ..
+sudo rm -rf shairport-sync
 
 echo
 echo "------------------------------------------------------"
