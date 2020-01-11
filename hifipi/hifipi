@@ -13,7 +13,7 @@ echo "Cloning and building shairport"
 echo "------------------------------------------------------"
 echo
 # installing required dependencies
-sudo apt -y install autoconf automake avahi-daemon build-essential libasound2-dev libavahi-client-dev libconfig-dev libdaemon-dev libpopt-dev libssl-dev libtool xmltoman alsa-utils,
+sudo apt -y install autoconf automake avahi-daemon build-essential libasound2-dev libavahi-client-dev libconfig-dev libdaemon-dev libpopt-dev libssl-dev libtool xmltoman alsa-utils
 # cloning and building shairport
 git clone https://github.com/mikebrady/shairport-sync.git
 cd shairport-sync
