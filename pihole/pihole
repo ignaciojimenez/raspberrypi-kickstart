@@ -8,23 +8,30 @@ echo "Beginning Pihole script"
 echo "------------------------------------------------------"
 echo
 
-pihole_original_ip="192.168.2.90"
-pihole_original_user="pi"
+pihole_original_ip="192.168.2.200"
+pihole_original_user="choco"
 
 echo "------------------------------------------------------"
-echo "Copying original pihole settings"
+echo "Copying original pihole settings from original and running pihole"
 echo "------------------------------------------------------"
-# copying all the pihole configs
 # copying the ssh public key
 ssh-copy-id ${pihole_original_user}@${pihole_original_ip}
-mkdir ~/pihole
+# copying all the pihole configs to tmp folders in ${HOME}
 scp -r ${pihole_original_user}@${pihole_original_ip}:/etc/dnsmasq.d/ ~/
+mkdir ~/pihole
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/setupVars.conf ~/pihole
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/adlists.list ~/pihole
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/whitelist.txt ~/pihole
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/blacklist.txt ~/pihole
 scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/wildcardblocking.txt ~/pihole
 
+# Modifying the IP from the new pihole
+NEW_IP=$(hostname -I | awk '{print $1}')
+sudo sed -i "s/IPV4_ADDRESS=.*/IPV4_ADDRESS=${NEW_IP}\/24/" ~/pihole/setupVars.conf
+sudo sed -i "s/DHCP_ROUTER=.*/DHCP_ROUTER=${NEW_IP}/" ~/pihole/setupVars.conf
+sudo sed -i "s/dhcp-option=option:router,.*/dhcp-option=option:router,${NEW_IP}/" ~/dnsmasq.d/02-pihole-dhcp.conf
+
+#moving configuration files to the final folders
 sudo mv ~/pihole/ /etc/
 sudo mv ~/dnsmasq.d/ /etc/
 #sudo chown pihole:pihole /etc/pihole/
