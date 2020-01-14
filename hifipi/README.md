@@ -1,2 +1,2 @@
 ## TODO
-- [ ] This script hasn't been tested yet
+- [x] This script hasn't been tested yet
