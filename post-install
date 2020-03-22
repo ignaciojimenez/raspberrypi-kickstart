@@ -16,7 +16,7 @@ echo
 generic_pwd="chocotemp"
 
 case "$1" in
-  "pihole"|"cobra"|"hifipi")
+  "pihole"|"cobra"|"hifipi"|"retroassist")
     echo "Starting a $1 installation"
     ;;
   *)
@@ -60,14 +60,6 @@ rndpwd=$(openssl rand -base64 45)
 echo "${rndpwd}" > ~/pwd
 chmod 600 ~/pwd
 echo -e "${generic_pwd}\n${rndpwd}\n${rndpwd}" | passwd
-
-echo "------------------------------------------------------"
-echo "Disabling the screen of the pi on boot via init.d script"
-echo "------------------------------------------------------"
-# disabling the screen of the pi on boot via init.d script
-sudo cp common/tvoff /etc/init.d/tvoff
-sudo chmod 755 /etc/init.d/tvoff
-sudo update-rc.d tvoff defaults
 
 echo "------------------------------------------------------"
 echo "Creating SSH key pair"

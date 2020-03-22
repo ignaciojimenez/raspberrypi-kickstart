@@ -1,0 +1,54 @@
+#!/bin/bash
+# 
+# Script to kickstart hifipi specific configurations
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning HifiPI script"
+echo "------------------------------------------------------"
+echo
+echo
+echo "------------------------------------------------------"
+echo "Cloning and building shairport"
+echo "------------------------------------------------------"
+echo
+# installing required dependencies
+sudo apt -y install autoconf automake avahi-daemon build-essential libasound2-dev libavahi-client-dev libconfig-dev libdaemon-dev libpopt-dev libssl-dev libtool xmltoman alsa-utils
+# cloning and building shairport
+git clone https://github.com/mikebrady/shairport-sync.git
+cd shairport-sync
+autoreconf -i -f
+./configure --with-alsa --with-avahi --with-ssl=openssl --with-systemd --with-metadata
+make
+sudo make install
+sudo systemctl enable shairport-sync
+amixer sset PCM,0 100%
+cd ..
+sudo rm -rf shairport-sync
+
+echo
+echo "------------------------------------------------------"
+echo "Configuring raspotify"
+echo "------------------------------------------------------"
+echo
+# installing required dependencies
+sudo apt -y install apt-transport-https
+# Add raspotify repo and its GPG key
+curl -sSL https://dtcooper.github.io/raspotify/key.asc | sudo apt-key add -v -
+echo 'deb https://dtcooper.github.io/raspotify raspotify main' | sudo tee /etc/apt/sources.list.d/raspotify.list
+# Update packages after importing
+sudo apt-get update
+# install raspspotify
+sudo apt -y install raspotify
+
+echo
+echo "------------------------------------------------------"
+echo "Creating an alias to act as a relay for downloading torrents"
+echo "------------------------------------------------------"
+echo
+# installing required dependencies
+sudo apt -y install transmission-remote-cli
+# create alias to download files easily
+echo "alias descargar='transmission-remote 192.168.2.204:9091 --auth=choco:popstock -a '" >> .bashrc
+# changing access to bashrc
+chmod 600 .bashrc
