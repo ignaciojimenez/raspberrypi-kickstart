@@ -3,5 +3,7 @@
 This is a collection of scripts to kickstart raspberry pi's using a minimal raspbian installation based on https://github.com/FooDeas/raspberrypi-ua-netinst
 ## TODO
 - [ ] Reassess risks of no passphrase ssh keypair generation
-- [ ] Reassess risks of fetching public keys from repo
+- [ ] Reassess risks of fetching public keys from repo --> Fetch from bitwarden
+- [ ] Create user pwd in memory and push to bitwarden
+- [ ] Add notification to slack channel of the process
 - [ ] Review TODOs for the different flavours
