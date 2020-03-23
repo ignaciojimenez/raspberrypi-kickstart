@@ -1,0 +1,44 @@
+#!/bin/bash
+# 
+# Script to kickstart hifipi specific configurations
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning RetroAssist script"
+echo "------------------------------------------------------"
+echo
+echo
+echo "------------------------------------------------------"
+echo "RetroPie Installation"
+echo "------------------------------------------------------"
+echo
+# Configuring locale required for retropie
+sudo update-locale LANGUAGE=en_US:en
+sudo update-locale LANGUAGE=en_US:en
+
+sudo apt install lsb-release
+
+git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git
+
+cd RetroPie-Setup
+chmod +x retropie_setup.sh
+sudo ./retropie_setup.sh
+
+
+echo
+echo "------------------------------------------------------"
+echo "HomeAssistant installation"
+echo "------------------------------------------------------"
+echo
+# installing required dependencies
+sudo apt-get update
+sudo apt-get install -y software-properties-common apparmor-utils apt-transport-https avahi-daemon ca-certificates curl dbus jq network-manager socat
+# disabling modemmanager
+sudo systemctl disable ModemManager
+sudo systemctl stop ModemManager
+# installing docker
+curl -fsSL get.docker.com | sudo sh
+# installing home assist
+curl -sL "https://raw.githubusercontent.com/home-assistant/hassio-installer/master/hassio_install.sh" | sudo bash -s -- -m raspberrypi4
+
+
