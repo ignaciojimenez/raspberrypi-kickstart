@@ -17,6 +17,14 @@ cobra_original_ip="192.168.2.203"
 cobra_original_user="pi"
 
 echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+# disabling the screen of the pi on boot via init.d script
+sudo cp common/tvoff /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
+
+echo "------------------------------------------------------"
 echo "Modifying apt sources, installing plex and stopping it to migrate library"
 echo "------------------------------------------------------"
 sudo apt --yes install apt-transport-https
