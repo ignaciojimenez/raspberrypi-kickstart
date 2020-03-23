@@ -6,4 +6,5 @@ This is a collection of scripts to kickstart raspberry pi's using a minimal rasp
 - [ ] Reassess risks of fetching public keys from repo --> Fetch from bitwarden
 - [ ] Create user pwd in memory and push to bitwarden
 - [ ] Add notification to slack channel of the process
+- [ ] Add existing cobra notifications to cobra scripts
 - [ ] Review TODOs for the different flavours
