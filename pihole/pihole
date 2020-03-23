@@ -12,6 +12,14 @@ pihole_original_ip="192.168.2.200"
 pihole_original_user="choco"
 
 echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+# disabling the screen of the pi on boot via init.d script
+sudo cp common/tvoff /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
+
+echo "------------------------------------------------------"
 echo "Copying original pihole settings from original and running pihole"
 echo "------------------------------------------------------"
 # copying the ssh public key
