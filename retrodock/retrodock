@@ -35,7 +35,7 @@ sudo apt-get install apt-transport-https ca-certificates software-properties-com
 # installing docker
 curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
 # allowing user to run docker
-sudo usermod -aG docker choco
+sudo usermod -aG docker ${USER}
 # installing sources
 #sudo curl https://download.docker.com/linux/raspbian/gpg
 #deb https://download.docker.com/linux/raspbian/ stretch stable
