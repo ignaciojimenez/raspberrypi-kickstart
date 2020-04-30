@@ -16,7 +16,7 @@ echo
 generic_pwd="chocotemp"
 
 case "$1" in
-  "pihole"|"cobra"|"hifipi"|"retroassist")
+  "pihole"|"cobra"|"hifipi"|"retrodock")
     echo "Starting a $1 installation"
     ;;
   *)
