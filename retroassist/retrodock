@@ -4,7 +4,7 @@
 
 echo
 echo "------------------------------------------------------"
-echo "Beginning RetroAssist script"
+echo "Beginning RetroDock script"
 echo "------------------------------------------------------"
 echo
 echo
@@ -27,12 +27,32 @@ sudo ./retropie_setup.sh
 
 echo
 echo "------------------------------------------------------"
+echo "Docker installation"
+echo "------------------------------------------------------"
+echo
+# installing required dependencies
+sudo apt-get install apt-transport-https ca-certificates software-properties-common -y
+# installing docker
+curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh
+# allowing user to run docker
+sudo usermod -aG docker choco
+# installing sources
+#sudo curl https://download.docker.com/linux/raspbian/gpg
+#deb https://download.docker.com/linux/raspbian/ stretch stable
+systemctl start docker.service
+docker info
+
+
+
+:'
+echo
+echo "------------------------------------------------------"
 echo "HomeAssistant installation"
 echo "------------------------------------------------------"
 echo
 # installing required dependencies
 sudo apt-get update
-sudo apt-get install -y software-properties-common apparmor-utils apt-transport-https avahi-daemon ca-certificates curl dbus jq network-manager socat
+sudo apt-get install -y apparmor-utils avahi-daemon dbus jq network-manager socat
 # disabling modemmanager
 sudo systemctl disable ModemManager
 sudo systemctl stop ModemManager
@@ -40,5 +60,5 @@ sudo systemctl stop ModemManager
 curl -fsSL get.docker.com | sudo sh
 # installing home assist
 curl -sL "https://raw.githubusercontent.com/home-assistant/hassio-installer/master/hassio_install.sh" | sudo bash -s -- -m raspberrypi4
-
+':
 
