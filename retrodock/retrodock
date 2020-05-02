@@ -18,11 +18,10 @@ sudo update-locale LANGUAGE=en_US:en
 
 sudo apt -y install lsb-release
 
-git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git
+git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git ~/RetroPie-Setup
 
-cd RetroPie-Setup
-chmod +x retropie_setup.sh
-sudo ./retropie_setup.sh
+chmod +x ~/RetroPie-Setup/retropie_setup.sh
+sudo ~/RetroPie-Setup/retropie_setup.sh
 
 
 echo
@@ -39,7 +38,7 @@ sudo usermod -aG docker ${USER}
 # installing sources
 #sudo curl https://download.docker.com/linux/raspbian/gpg
 #deb https://download.docker.com/linux/raspbian/ stretch stable
-systemctl start docker.service
+sudo systemctl start docker.service
 docker info
 
 
