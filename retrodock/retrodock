@@ -15,13 +15,16 @@ echo
 # Configuring locale required for retropie
 sudo update-locale LANGUAGE=en_US:en
 sudo update-locale LANGUAGE=en_US:en
-
+# Adding dependencies
 sudo apt -y install lsb-release
-
+# Copying repo and and installing
 git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git ~/RetroPie-Setup
-
 chmod +x ~/RetroPie-Setup/retropie_setup.sh
 sudo ~/RetroPie-Setup/retropie_setup.sh
+# Adding autologin to retropie
+f="/etc/systemd/system/getty@tty1.service.d/autologin.conf"
+sudo mkdir -p -- "${f%/*}" && echo -e "[Service]\nExecStart=-/sbin/agetty --autologin ${USER} --noclear %I 38400 linux" | sudo tee "$f"
+sudo systemctl enable getty@tty1.service
 
 
 echo
