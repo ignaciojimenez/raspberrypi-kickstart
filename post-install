@@ -102,6 +102,10 @@ echo "------------------------------------------------------"
 # changing access to bashrc
 chmod 600 ~/.bashrc
 
+echo "Adding git identity"
+git config --global user.email "i.jimenezpi@gmail.com"
+git config --global user.name "Ignacio Jimenez Pi"
+
 echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"
 echo "------------------------------------------------------"
