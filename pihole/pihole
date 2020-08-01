@@ -116,3 +116,13 @@ echo "------------------------------------------------------"
 #Making iptables persistent
 sudo netfilter-persistent save
 sudo systemctl enable netfilter-persistent
+
+echo "------------------------------------------------------"
+echo "Copying dyndns script and creating cronjob"
+echo "------------------------------------------------------"
+# downloading update.sh script
+cp dyndns ~
+sudo chmod +x ~/dyndns
+# install crontab to create system autoupdates
+echo "$(echo "0 3 1 1-12 * bash /home/${USER}/dyndns >> /home/${USER}/.log/dyndns.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+

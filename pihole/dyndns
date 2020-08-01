@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# Script to update periodically the pi
+date=$(date +%F_%T)
+pre_ip1=$(curl --silent ifconfig.co)
+sudo service openvpn@pvpn stop
+sleep 5
+pre_ip2=$(curl --silent ifconfig.co)
+dns_renew=$(curl --silent "https://freemyip.com/update?token=12402605f97058483c522f55&domain=raspchoc.freemyip.com")
+sleep 1
+sudo service openvpn@pvpn start
+sleep 5
+post_ip=$(curl --silent ifconfig.co)
+echo [${date}] ${pre_ip1}/${pre_ip2}/${dns_renew}/${post_ip}

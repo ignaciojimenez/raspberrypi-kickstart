@@ -8,4 +8,3 @@ This is a collection of scripts to kickstart raspberry pi's using a minimal rasp
 - [ ] Add notification to slack channel of the process
 - [ ] Add existing cobra notifications to cobra scripts
 - [ ] Review TODOs for the different flavours
-- [ ] Review tvoff script move to per install scripts
