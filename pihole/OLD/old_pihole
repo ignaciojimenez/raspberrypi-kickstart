@@ -1,0 +1,128 @@
+#!/bin/bash
+# 
+# Script to kickstart pihole specific configurations
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning Pihole script"
+echo "------------------------------------------------------"
+echo
+
+pihole_original_ip="192.168.2.200"
+pihole_original_user="choco"
+
+echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+# disabling the screen of the pi on boot via init.d script
+sudo cp ../common/tvoff /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
+
+echo "------------------------------------------------------"
+echo "Copying original pihole settings from original and running pihole"
+echo "------------------------------------------------------"
+# copying the ssh public key
+ssh-copy-id ${pihole_original_user}@${pihole_original_ip}
+# copying all the pihole configs to tmp folders in ${HOME}
+scp -r ${pihole_original_user}@${pihole_original_ip}:/etc/dnsmasq.d/ ~/
+mkdir ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/setupVars.conf ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/adlists.list ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/whitelist.txt ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/blacklist.txt ~/pihole
+scp ${pihole_original_user}@${pihole_original_ip}:/etc/pihole/wildcardblocking.txt ~/pihole
+
+# Modifying the IP from the new pihole
+NEW_IP=$(hostname -I | awk '{print $1}')
+sudo sed -i "s/IPV4_ADDRESS=.*/IPV4_ADDRESS=${NEW_IP}\/24/" ~/pihole/setupVars.conf
+sudo sed -i "s/DHCP_ROUTER=.*/DHCP_ROUTER=${NEW_IP}/" ~/pihole/setupVars.conf
+sudo sed -i "s/dhcp-option=option:router,.*/dhcp-option=option:router,${NEW_IP}/" ~/dnsmasq.d/02-pihole-dhcp.conf
+
+#moving configuration files to the final folders
+sudo mv ~/pihole/ /etc/
+sudo mv ~/dnsmasq.d/ /etc/
+#sudo chown pihole:pihole /etc/pihole/
+sudo chown -R root:root /etc/dnsmasq.d/
+
+echo "------------------------------------------------------"
+echo "Installing pihole"
+echo "------------------------------------------------------"
+# installing pihole required package
+sudo apt install bc
+# install pihole
+curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
+
+# Checking that the installation was completed
+if [[ -z $(type -p $(pihole) &> /dev/null ) ]]; then
+  # if not, modify /etc/resolv.conf and retry
+  echo "------------------------------------------------------"
+  echo "Retrying pihole installation in 10 seconds, please wait..."
+  sleep 10
+  echo "Now proceeding with pihole installation retry"
+  echo "------------------------------------------------------"
+  echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+  curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
+fi
+
+echo "------------------------------------------------------"
+echo "Installing openvpn and configuring it from gist conf"
+echo "------------------------------------------------------"
+#installing needed packages for the vpn tunnel and gateway
+sudo apt --yes install openvpn
+# getting the conf from the gist
+sudo cp pvpn.conf /etc/openvpn/pvpn.conf
+# Moving login info to etc
+sudo mv ~/pvpnpass /etc/openvpn/
+# Protect the vpn login info
+sudo chmod 400 /etc/openvpn/pvpnpass
+# Making openvpn to Autostart
+sudo sed -i 's/#AUTOSTART="all"/AUTOSTART="all"/' /etc/default/openvpn
+# Registering te service
+sudo systemctl enable openvpn@pvpn.service
+# Reloading services
+sudo systemctl daemon-reload
+# Starting the service for the first time
+sudo service openvpn@pvpn start
+# Testing that the vpn is properly connected
+echo "Testing the VPN configuration"
+sleep 5
+curl ifconfig.co
+
+echo "------------------------------------------------------"
+echo "Modifying configs to allow the pihole to act as a router"
+echo "------------------------------------------------------"
+#Enabling IP forwarding
+echo "Enabling IP Routing by uncommenting /etc/sysctl.conf"
+sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+#installing iptables persistent and avoiding providing input
+echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+sudo apt-get --yes --force-yes install iptables-persistent
+# Setting NATMASQ in TUN0 for traffic forwarding
+sudo iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+# Allowing related and established connections fron TUN0 to ETH0
+sudo iptables -A FORWARD -i tun0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+# TODO bypass VPN for specific IPs
+#sudo iptables -A FORWARD -s 192.168.2.202 -o eth0 -j ACCEPT
+# Forward all traffic from ETH0 to TUN0
+sudo iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+
+#Pending review Killswitch ideas?
+
+echo "------------------------------------------------------"
+echo "Saving newly created iptables"
+echo "------------------------------------------------------"
+#Making iptables persistent
+sudo netfilter-persistent save
+sudo systemctl enable netfilter-persistent
+
+echo "------------------------------------------------------"
+echo "Copying dyndns script and creating cronjob"
+echo "------------------------------------------------------"
+# downloading update.sh script
+cp dyndns ~
+sudo chmod +x ~/dyndns
+# install crontab to create system autoupdates
+echo "$(echo "0 3 1 1-12 * bash /home/${USER}/dyndns >> /home/${USER}/.log/dyndns.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+

@@ -25,7 +25,7 @@ echo
 sudo apt -y install autoconf automake avahi-daemon build-essential libasound2-dev libavahi-client-dev libconfig-dev libdaemon-dev libpopt-dev libssl-dev libtool xmltoman alsa-utils
 # cloning and building shairport
 git clone https://github.com/mikebrady/shairport-sync.git
-cd shairport-sync
+cd shairport-sync || exit
 autoreconf -i -f
 ./configure --with-alsa --with-avahi --with-ssl=openssl --with-systemd --with-metadata
 make
@@ -52,12 +52,8 @@ sudo apt -y install raspotify
 
 echo
 echo "------------------------------------------------------"
-echo "Creating an alias to act as a relay for downloading torrents"
+echo "Installing transmission remote to use it as a relay"
 echo "------------------------------------------------------"
 echo
 # installing required dependencies
 sudo apt -y install transmission-remote-cli
-# create alias to download files easily
-echo "alias descargar='transmission-remote 192.168.2.204:9091 --auth=choco:popstock -a '" >> .bashrc
-# changing access to bashrc
-chmod 600 .bashrc

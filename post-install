@@ -2,8 +2,10 @@
 # 
 # Script to kickstart raspberry pi-s client specific configurations
 
+set -e  # stop on errors
+set -u  # stop on unset variables
+set -o pipefail  # stop on pipe failures
 # set -o errexit
-# set -o pipefail
 # set -o nounset
 # set -o xtrace
 
@@ -94,7 +96,7 @@ echo "------------------------------------------------------"
 cp common/update ~
 sudo chmod +x ~/update
 # install crontab to create system autoupdates
-echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/.log/update.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/update >> /home/${USER}/.log/update.log 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"
@@ -110,8 +112,9 @@ echo "------------------------------------------------------"
 echo "Now executing specific script for system: $1"
 echo "------------------------------------------------------"
 # executing custom script for the type of installation desired
-cd $1
-source $1
+cd "$1"
+# shellcheck source=/dev/null
+source "$1"
 cd ..
 
 echo "------------------------------------------------------"
