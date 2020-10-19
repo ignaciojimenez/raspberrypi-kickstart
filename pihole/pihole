@@ -57,7 +57,8 @@ sudo apt install bc
 curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
 
 # Checking that the installation was completed
-if [[ -z $(type -p "$(pihole)" &> /dev/null ) ]]; then
+if ! command -v pihole &> /dev/null
+then
   # if not, modify /etc/resolv.conf and retry
   echo "------------------------------------------------------"
   echo "Retrying pihole installation in 10 seconds, please wait..."
