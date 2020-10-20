@@ -16,6 +16,7 @@ echo "------------------------------------------------------"
 echo
 
 generic_pwd="chocotemp"
+current_user=${USER}
 
 case "$1" in
   "pihole"|"cobra"|"hifipi"|"retrodock")
@@ -31,7 +32,9 @@ echo "------------------------------------------------------"
 echo "Adding the user to the sudoers"
 echo "------------------------------------------------------"
 # adding the user to the sudoers
-echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
+# shellcheck disable=SC2016
+script='echo "$1 ALL=(ALL:ALL) NOPASSWD: ALL" | tee -a /etc/xsudoers'
+echo ${generic_pwd} | sudo -S /bin/sh -c "$script" -- "$current_user"
 
 echo "------------------------------------------------------"
 echo "Updating and upgrading to start"
@@ -68,21 +71,21 @@ echo "Creating SSH key pair"
 echo "------------------------------------------------------"
 # creating the ssh key
 mkdir ~/.ssh
-chmod 700 ~/.ssh/
-# Disabled creating an ssh passphrase - I know I know
-# rndpwd=$(openssl rand -base64 45)
-# echo "${rndpwd}" > ~/.ssh/pwd
-# chmod 600 ~/.ssh/pwd
-ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N ""
-#ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
+chmod 700 ~/.ssh
+rndpwd=$(openssl rand -base64 45)
+echo "${rndpwd}" > ~/.ssh/pwd
+chmod 600 ~/.ssh/pwd
+#ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N ""
+ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
 
 echo "------------------------------------------------------"
 echo "Copying authorized_keys"
 echo "------------------------------------------------------"
 # importing authorized_keys from gist - Reassess if this is a good idea
-cp common/authorized_keys ~/.ssh/authorized_keys
+auth_keys="https://gist.githubusercontent.com/ignaciojimenez/ad9d7f85927a18826ad105241ad968f4/raw/authorized_keys"
+curl ${auth_keys} -o ~/.ssh/authorized_keys --create-dirs
+chmod 700 ~/.ssh
 chmod 644 ~/.ssh/authorized_keys
-
 
 echo "------------------------------------------------------"
 echo "Created logdir in userspace"

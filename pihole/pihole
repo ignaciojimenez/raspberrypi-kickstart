@@ -8,9 +8,9 @@ echo "Beginning Pihole script"
 echo "------------------------------------------------------"
 echo
 # shellcheck disable=SC2034
-pihole_original_ip="192.168.2.200"
+# pihole_original_ip="192.168.2.200"
 # shellcheck disable=SC2034
-pihole_original_user="choco"
+# pihole_original_user="choco"
 
 echo "------------------------------------------------------"
 echo "Disabling the screen of the pi on boot via init.d script"
