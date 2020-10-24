@@ -68,3 +68,26 @@ then
   echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
   curl -L https://install.pi-hole.net | sudo bash /dev/stdin --unattended
 fi
+
+echo "------------------------------------------------------"
+echo "Installing unify Controller"
+echo "------------------------------------------------------"
+# speeding up randomness
+sudo apt-get install haveged -y
+# install java8 (cluncky dependency)
+sudo apt-get install openjdk-8-jre-headless -y
+# adding the repo and gpg repo keys
+echo 'deb http://www.ui.com/downloads/unifi/debian stable ubiquiti' | sudo tee /etc/apt/sources.list.d/100-ubnt-unifi.list
+sudo wget -O /etc/apt/trusted.gpg.d/unifi-repo.gpg https://dl.ubnt.com/unifi/unifi-repo.gpg
+# install this now
+sudo apt-get update; sudo apt-get install unifi -y
+# clean mongodb
+sudo systemctl stop mongodb
+sudo systemctl disable mongodb
+
+# Controller portal https://${IP}:8443
+
+echo "------------------------------------------------------"
+echo "Adding pihole update to update script"
+echo "------------------------------------------------------"
+sed -i '7ipihole -up' ~/update
