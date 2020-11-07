@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# Generic script to start the installation cloning the whole git repo
+
+set -e  # stop on errors
+set -u  # stop on unset variables
+set -o pipefail  # stop on pipe failures
+
+git clone https://github.com/ignaciojimenez/raspberrypi-kickstart.git
+cd raspberrypi-kickstart/
+chmod 755 install
+source install ${HOSTNAME}
+cd ~
+rm -rf raspberrypi-kickstart/
