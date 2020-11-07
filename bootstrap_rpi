@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# Script that loads specific configurations for different kinds of pis
+
+E_NOARGS=85
+if [ -z "$1" ]; then
+  echo "Usage: $(basename "$0") [installationtype]"
+  exit "$E_NOARGS"
+fi
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+common() {
+  file="${1}"
+  type="${2}"
+  # First, basic config parameters
+  echo "preset=server" >>"${file}"
+  echo "firmware_packages=1" >>"${file}"
+  echo "packages=vim,fail2ban,curl,git" >>"${file}"
+
+  # SSH config
+  echo 'root_ssh_pubkey=""' >>"${file}"
+  echo "root_ssh_pwlogin=0" >>"${file}"
+
+  # User config
+  echo "username=choco" >>"${file}"
+  echo "userpw=chocotemp" >>"${file}"
+  echo "userperms_admin=1" >>"${file}"
+
+  # disabling ipv6
+  echo "ip_ipv6=0" >>"${file}"
+
+  # Locale configs
+  echo 'locales="en_US.UTF-8,es_ES.UTF-8"' >>"${file}"
+  echo 'system_default_locale="en_US.UTF-8"' >>"${file}"
+  echo "timezone=Europe/Amsterdam" >>"${file}"
+
+  # dont cleanup installation files after finishing (to reinstall if necessary)
+  echo "cleanup=0" >>"${file}"
+
+  # enable file watchdog capabilities
+  echo "watchdog_enable=1" >>"${file}"
+
+  # writting hostname
+  echo "hostname=${type}" >>"${file}"
+
+  echo "OK"
+}
+
+retrodock() {
+  echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
+  echo "OK"
+}
+
+pihole() {
+  echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
+  echo "ip_addr=10.30.40.200" >> "${1}"
+  echo "ip_netmask=255.255.255.0" >> "${1}"
+  echo "ip_gateway=10.30.40.254" >> "${1}"
+  echo "ip_nameservers=1.1.1.1" >> "${1}"
+  echo "gpu_mem=16" >> "${1}"
+  echo "OK"
+}
+
+cobra() {
+  echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
+  echo "gpu_mem=16" >> "${1}"
+  echo "OK"
+}
+
+devpi() {
+  echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
+  echo "gpu_mem=16" >> "${1}"
+  echo "OK"
+}
+
+hifipi() {
+  echo 'dt_overlays="hifiberry-dacplus,disable-bt"' >> "${1}"
+  echo "gpu_mem=16" >> "${1}"
+  echo "ifname=wlan0" >> "${1}"
+  echo "wlan_country=NL" >> "${1}"
+  echo
+  echo "------------------ WARNING----------------------" >&2
+  echo "wlan_psk needs to be configured manually" >&2
+  echo "System will not boot" >&2
+  echo "-------------------WARNING----------------------" >&2
+  echo
+  echo "wlan_ssid=estonoesmazagon" >> "${1}"
+  echo "wlan_psk=********" >> "${1}"
+  echo "OK"
+}
+
+# TODO read volume name from arg input (not needed atm - NO NAME is created by default)
+volume_name="NO NAME"
+config_path="/Volumes/${volume_name}/raspberrypi-ua-netinst/config"
+
+case "$1" in
+"pihole" | "cobra" | "hifipi" | "retrodock" | "devpi")
+  echo "-------------------------------------------------------"
+  echo "Copying bootstrap $1 configs to ${volume_name}"
+  echo "-------------------------------------------------------"
+  install_type="$1"
+  ;;
+*)
+  echo "Wrong parameter. Use: pihole|cobra|hifipi|retrodock|devpi"
+  exit 1
+  ;;
+esac
+
+[ ! -d "${config_path}" ] && echo "Error: Directory ${config_path} DOES NOT exist." && exit 1
+
+install_config="${config_path}/installer-config.txt"
+
+echo
+echo "-------------------------------------------------------"
+echo "Copying common files configs to ${install_config}"
+echo "-------------------------------------------------------"
+test_common=$(common "${install_config}" "${install_type}")
+[[ $test_common != "OK" ]] && echo "Error: problem in writting common configs to ${install_config}" && exit 1
+echo "SUCCES: Common configurations copied"
+
+echo
+echo "-------------------------------------------------------"
+echo "Copying ${install_type} specific configs to ${install_config}"
+echo "-------------------------------------------------------"
+test_particular=$(${install_type} "${install_config}")
+[[ $test_particular != "OK" ]] && echo "Error: problem in writting ${install_type} configs to ${install_config}" && exit 1
+echo "SUCCES:${install_type} configurations copied"
+
