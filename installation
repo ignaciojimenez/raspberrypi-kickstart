@@ -89,6 +89,7 @@ echo "Copying authorized_keys"
 echo "------------------------------------------------------"
 # importing authorized_keys from gist - Reassess if this is a good idea
 auth_keys="https://gist.githubusercontent.com/ignaciojimenez/ad9d7f85927a18826ad105241ad968f4/raw/authorized_keys"
+echo "Executing: curl -s -L -J  ${auth_keys} -o ~/.ssh/authorized_keys --create-dirs"
 curl ${auth_keys} -o ~/.ssh/authorized_keys --create-dirs
 chmod 700 ~/.ssh
 chmod 644 ~/.ssh/authorized_keys
