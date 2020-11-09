@@ -39,7 +39,7 @@ echo "Adding the user to the sudoers"
 echo "------------------------------------------------------"
 # adding the user to the sudoers
 # shellcheck disable=SC2016
-script='echo "$1 ALL=(ALL:ALL) NOPASSWD: ALL" | tee -a /etc/xsudoers'
+script='echo "$1 ALL=(ALL:ALL) NOPASSWD: ALL" | tee -a /etc/sudoers'
 echo ${generic_pwd} | sudo -S /bin/sh -c "$script" -- "$current_user"
 
 echo "------------------------------------------------------"
