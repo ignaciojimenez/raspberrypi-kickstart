@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Script to kickstart devpi specific configurations
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning HifiPI script"
+echo "------------------------------------------------------"
+echo
+
+echo "Nothing specific to the devpi"
