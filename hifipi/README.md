@@ -5,5 +5,5 @@ This raspberry pi will use a [Hifiberry](https://www.hifiberry.com/) hat to stre
 None
 
 ## TODO
-- [ ] Create a VPN server to allow the the hifipi to act as a VPN gateway
+- [x] ~~Create a VPN server to allow the the hifipi to act as a VPN gateway~~ Discarded
 - [x] ~~This script hasn't been tested yet~~
