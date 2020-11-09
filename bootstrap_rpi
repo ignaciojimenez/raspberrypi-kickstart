@@ -129,3 +129,17 @@ test_particular=$(${install_type} "${install_config}")
 [[ $test_particular != "OK" ]] && echo "Error: problem in writting ${install_type} configs to ${install_config}" && exit 1
 echo "SUCCES:${install_type} configurations copied"
 
+post_install_config="${config_path}/post-install.txt"
+echo
+echo "-------------------------------------------------------"
+echo "Writting post-install script to ${post_install_config}"
+echo "-------------------------------------------------------"
+{
+  echo 'echo "#!/bin/bash" > /rootfs/etc/rc.local';
+  echo 'echo "sleep 7" >> /rootfs/etc/rc.local';
+  echo 'echo "URL="https://raw.githubusercontent.com/ignaciojimenez/raspberrypi-kickstart/master/kickstart"" >> /rootfs/etc/rc.local';
+  echo 'echo "cd /home/${username} && { su ${username} -c "curl -L -O -J ${URL}" ; cd -; }" >> /rootfs/etc/rc.local';
+  echo 'echo "rm \$0" >> /rootfs/etc/rc.local';
+  echo 'chmod 777 /rootfs/etc/rc.local';
+} >> "${post_install_config}"
+echo "SUCCES:${post_install_config} configuration file written"
