@@ -2,6 +2,12 @@
 # 
 # Script to kickstart raspberry pi-s client specific configurations
 
+E_NOARGS=85
+if [ -z "$1" ]; then
+  echo "Usage: $(basename "$0") [installationtype]"
+  exit "$E_NOARGS"
+fi
+
 set -e  # stop on errors
 set -u  # stop on unset variables
 set -o pipefail  # stop on pipe failures
@@ -19,11 +25,11 @@ generic_pwd="chocotemp"
 current_user=${USER}
 
 case "$1" in
-  "pihole"|"cobra"|"hifipi"|"retrodock")
+  "pihole"|"cobra"|"hifipi"|"retrodock"|"devpi")
     echo "Starting a $1 installation"
     ;;
   *)
-    echo "You have failed to specify which kind of pi do you want to configure or provided a wrong installation"
+    echo "You have provided a wrong installation type: $1"
     exit 1
     ;;
 esac
@@ -62,8 +68,8 @@ echo "Chaging user password to random value"
 echo "------------------------------------------------------"
 # change user password
 rndpwd=$(openssl rand -base64 45)
-echo "${rndpwd}" > ~/pwd
-chmod 600 ~/pwd
+echo "${rndpwd}" > /dev/shm/pwd
+chmod 600 /dev/shm/pwd
 echo -e "${generic_pwd}\n${rndpwd}\n${rndpwd}" | passwd
 
 echo "------------------------------------------------------"
@@ -73,8 +79,8 @@ echo "------------------------------------------------------"
 mkdir ~/.ssh
 chmod 700 ~/.ssh
 rndpwd=$(openssl rand -base64 45)
-echo "${rndpwd}" > ~/.ssh/pwd
-chmod 600 ~/.ssh/pwd
+echo "${rndpwd}" > /dev/shm/ssh_pwd
+chmod 600 /dev/shm/ssh_pwd
 #ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N ""
 ssh-keygen -o -a 250 -t ed25519 -f ~/.ssh/id_ed25519 -C "${USER}@${HOSTNAME}" -q -N "${rndpwd}"
 
@@ -131,5 +137,5 @@ sudo apt-get autoclean
 sudo apt-get clean
 
 echo "------------------------------------------------------"
-echo "Installation finished. Please reboot manually..."
+echo "Installation finished. Please store the password files securely and reboot manually..."
 echo "------------------------------------------------------"
