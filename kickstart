@@ -8,7 +8,7 @@ set -o pipefail  # stop on pipe failures
 
 git clone https://github.com/ignaciojimenez/raspberrypi-kickstart.git
 cd raspberrypi-kickstart/
-chmod 755 install
-source install ${HOSTNAME}
+chmod 755 installation
+source installation ${HOSTNAME}
 cd ~
 rm -rf raspberrypi-kickstart/
