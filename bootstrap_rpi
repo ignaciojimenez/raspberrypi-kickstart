@@ -138,7 +138,7 @@ echo "-------------------------------------------------------"
   echo 'echo "#!/bin/bash" > /rootfs/etc/rc.local';
   echo 'echo "sleep 7" >> /rootfs/etc/rc.local';
   echo 'echo "URL="https://raw.githubusercontent.com/ignaciojimenez/raspberrypi-kickstart/master/kickstart"" >> /rootfs/etc/rc.local';
-  echo 'echo "cd /home/${username} && { su ${username} -c "curl -s -L -O -J ${URL}" ; cd -; }" >> /rootfs/etc/rc.local';
+  echo 'echo "cd /home/${username} && { sudo -u ${username} "curl -s -L -O -J \${URL}" ; chmod +x \${URL##*/} ; cd -; }" >> /rootfs/etc/rc.local';
   echo 'echo "rm \$0" >> /rootfs/etc/rc.local';
   echo 'chmod 777 /rootfs/etc/rc.local';
 } >> "${post_install_config}"
