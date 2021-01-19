@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Script to change pihole dns settings when vpn is up/down
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+if [ "$(dig +short am.i.mullvad.net)" ]; then
+  vpn_up=$(curl -s https://am.i.mullvad.net/json | jq .mullvad_exit_ip)
+else
+  vpn_up=false
+fi
+
+VPN_DNS="10.64.0.1#53"
+CLOUDFLARE_DNS=1.1.1.1
+
+case "${vpn_up}" in
+  "true")
+    NEW_DNS=${VPN_DNS}
+    ;;
+  "false")
+    NEW_DNS=${CLOUDFLARE_DNS}
+    ;;
+  *)
+    echo "[$(date)] dns_checkandchange script failure. Mullvad service response not true|false. Response ${vpn_up}"
+    exit 1
+    ;;
+esac
+
+svars_dns=$(awk -F "=" '/^PIHOLE_DNS_1/{print $NF; exit}' /etc/pihole/setupVars.conf)
+dnsmasq_dns=$(awk -F "=" '/^server/{print $NF; exit}' /etc/dnsmasq.d/01-pihole.conf)
+
+change="false"
+if [[ "$svars_dns" != "$NEW_DNS" ]]; then
+  sudo sed -i "s/PIHOLE_DNS_1=.*/PIHOLE_DNS_1=${NEW_DNS}/" /etc/pihole/setupVars.conf
+  change="true"
+elif [[ "$dnsmasq_dns" != "$NEW_DNS" ]]; then
+  sudo sed -i "0,/^server=.*/s//server=${NEW_DNS}/" /etc/dnsmasq.d/01-pihole.conf
+  change="true"
+fi
+# pihole restartdns
+[[ "$change" == "true" ]] && sudo service pihole-FTL restart

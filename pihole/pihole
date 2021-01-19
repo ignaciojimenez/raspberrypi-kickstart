@@ -91,3 +91,10 @@ echo "------------------------------------------------------"
 echo "Adding pihole update to update script"
 echo "------------------------------------------------------"
 sed -i '7ipihole -up' ~/update
+
+echo "------------------------------------------------------"
+echo "adding dns_change to update dns configs in case the vpn is down"
+echo "------------------------------------------------------"
+sudo apt-get install jq -y
+cp dns_checkandchange ~
+echo "$(echo "*/15 * * * * /bin/bash /home/${USER}/dns_checkandchange >> /home/${USER}/.log/dns 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
