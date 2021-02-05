@@ -1,5 +1,5 @@
 ## Description
-Allegedly a retropie with home assistant too
+Docker with Homeassistant running
 
 ## Required files
 None
