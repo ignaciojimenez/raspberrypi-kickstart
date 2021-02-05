@@ -1,0 +1,62 @@
+echo
+echo "------------------------------------------------------"
+echo "Installing squeezelite"
+echo "------------------------------------------------------"
+echo
+# installing necessary dependencies
+sudo apt-get install -y libflac-dev libfaad2 libmad0 netcat
+# downloading last version and copying it to /usr/bin/
+tmp_folder="temp_squeeze"
+mkdir ${tmp_folder} && cd ${tmp_folder} || exit
+sourceforge_url=https://sourceforge.net/projects/lmsclients/files/squeezelite/linux/
+download_url=$(curl -s $sourceforge_url | grep armhf | grep https | grep -io '<a href=['"'"'"][^"'"'"']*['"'"'"]' | sed -e 's/^<a href=["'"'"']//i' -e 's/["'"'"']$//i')
+trimmed_url=${download_url%/*}
+filename=${trimmed_url##*/}
+curl -s -L -O -J "$download_url"
+tar -xvzf "$filename"
+# Specific filename is required for the next part to work
+sudo mv squeezelite /usr/bin/squeezelite-armv6hf
+sudo chmod a+x /usr/bin/squeezelite-armv6hf
+
+# Conf guidance
+#card="front:CARD=Set,DEV=0"
+#LMS_IP="10.30.40.X"
+#sudo /usr/bin/squeezelite -o ${card} -s ${LMS_IP}
+#sudo /usr/bin/squeezelite -o ${card}
+
+# Automated config based on https://www.gerrelt.nl/RaspberryPi/wordpress/tutorial-installing-squeezelite-player-on-raspbian/#Installing_Squeezelite
+wget http://www.gerrelt.nl/RaspberryPi/squeezelite_settings.sh
+# TODO check if necessary to remove previous SL_SOUNDCARD definition using sed/awk
+echo 'SL_SOUNDCARD="front:CARD=Set,DEV=0"'  >> squeezelite_settings.sh
+sudo mv squeezelite_settings.sh /usr/local/bin
+sudo chmod a+x /usr/local/bin/squeezelite_settings.sh
+
+wget http://www.gerrelt.nl/RaspberryPi/squeezelitehf.sh
+sudo mv squeezelitehf.sh /etc/init.d/squeezelite
+sudo chmod a+x /etc/init.d/squeezelite
+
+wget http://www.gerrelt.nl/RaspberryPi/squeezelite.service
+sudo mv squeezelite.service /etc/systemd/system
+sudo systemctl enable squeezelite.service
+
+cd .. && rm -rf ${tmp_folder}
+
+echo "Adding squeezelite update to update script"
+sed -i '7isudo /etc/init.d/squeezelite update' ~/update
+
+
+echo
+echo "------------------------------------------------------"
+echo "Installing LMS"
+echo "------------------------------------------------------"
+echo
+
+version="8.1.1"
+download_url=http://downloads.slimdevices.com/LogitechMediaServer_v${version}/logitechmediaserver_${version}_arm.deb
+curl -s -L -O -J "$download_url"
+filename=${download_url##*/}
+echo $filename
+sudo apt install -y ./$filename
+sudo apt-get -f install
+# TODO Check if needed
+sudo usermod -G audio squeezeboxserver

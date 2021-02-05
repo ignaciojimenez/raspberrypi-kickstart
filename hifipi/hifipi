@@ -2,6 +2,10 @@
 # 
 # Script to kickstart hifipi specific configurations
 
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
 echo
 echo "------------------------------------------------------"
 echo "Beginning HifiPI script"
@@ -9,12 +13,15 @@ echo "------------------------------------------------------"
 echo
 
 echo "------------------------------------------------------"
-echo "Disabling the screen of the pi on boot via init.d script"
+echo "removing USB audio deprioritization"
 echo "------------------------------------------------------"
-# disabling the screen of the pi on boot via init.d script
-sudo cp ../common/tvoff /etc/init.d/tvoff
-sudo chmod 755 /etc/init.d/tvoff
-sudo update-rc.d tvoff defaults
+echo
+### TODO remove USB audio deprioritization
+cat /lib/modprobe.d/aliases.conf
+options snd-usb-audio index=-2
+# TODO Check if this actually works
+# reloading systemd modules
+sudo systemctl restart systemd-modules-load.service
 
 echo
 echo "------------------------------------------------------"
@@ -50,10 +57,33 @@ sudo apt-get update
 # install raspspotify
 sudo apt -y install raspotify
 
-echo
 echo "------------------------------------------------------"
-echo "Installing transmission remote to use it as a relay"
+echo "Installing mpd - music daemon to play streams"
 echo "------------------------------------------------------"
-echo
-# installing required dependencies
-sudo apt -y install transmission-remote-cli
+sudo apt install -y mpd
+mpd_conf="/etc/mpd.conf"
+
+# modifying mpd configuration
+# allowing any host to connect
+sudo sed -e '/bind_to_address/ s/^#*/#/' -i ${mpd_conf}
+# enabling mdns announcement of the device
+echo 'zeroconf_enabled		"yes"' | sudo tee -a ${mpd_conf} > /dev/null
+echo 'zeroconf_name		"hifipi-mpd"' | sudo tee -a ${mpd_conf} > /dev/null
+
+#echo "------------------------------------------------------"
+#echo "RetroPie Installation"
+#echo "------------------------------------------------------"
+#echo
+# Configuring locale required for retropie
+#sudo update-locale LANGUAGE=en_US:en
+#sudo update-locale LANGUAGE=en_US:en
+# Adding dependencies
+#sudo apt -y install lsb-release
+# Copying repo and and installing
+#git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git ~/RetroPie-Setup
+#chmod +x ~/RetroPie-Setup/retropie_setup.sh
+#sudo ~/RetroPie-Setup/retropie_setup.sh
+# Adding autologin to retropie
+#f="/etc/systemd/system/getty@tty1.service.d/autologin.conf"
+#sudo mkdir -p -- "${f%/*}" && echo -e "[Service]\nExecStart=-/sbin/agetty --autologin ${USER} --noclear %I 38400 linux" | sudo tee "$f"
+#sudo systemctl enable getty@tty1.service

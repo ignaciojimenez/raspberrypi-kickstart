@@ -1,31 +1,20 @@
 #!/bin/bash
 # 
-# Script to kickstart hifipi specific configurations
+# Script to kickstart dockassist specific configurations
 
 echo
 echo "------------------------------------------------------"
-echo "Beginning RetroDock script"
+echo "Beginning Dockassist script"
 echo "------------------------------------------------------"
 echo
-echo
-echo "------------------------------------------------------"
-echo "RetroPie Installation"
-echo "------------------------------------------------------"
-echo
-# Configuring locale required for retropie
-sudo update-locale LANGUAGE=en_US:en
-sudo update-locale LANGUAGE=en_US:en
-# Adding dependencies
-sudo apt -y install lsb-release
-# Copying repo and and installing
-git clone --depth=1 https://github.com/RetroPie/RetroPie-Setup.git ~/RetroPie-Setup
-chmod +x ~/RetroPie-Setup/retropie_setup.sh
-sudo ~/RetroPie-Setup/retropie_setup.sh
-# Adding autologin to retropie
-f="/etc/systemd/system/getty@tty1.service.d/autologin.conf"
-sudo mkdir -p -- "${f%/*}" && echo -e "[Service]\nExecStart=-/sbin/agetty --autologin ${USER} --noclear %I 38400 linux" | sudo tee "$f"
-sudo systemctl enable getty@tty1.service
 
+echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+# disabling the screen of the pi on boot via init.d script
+sudo cp ../common/tvoff /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
 
 echo
 echo "------------------------------------------------------"
@@ -44,9 +33,6 @@ sudo usermod -aG docker ${USER}
 sudo systemctl start docker.service
 docker info
 
-
-
-:'
 echo
 echo "------------------------------------------------------"
 echo "HomeAssistant installation"
@@ -62,5 +48,4 @@ sudo systemctl stop ModemManager
 curl -fsSL get.docker.com | sudo sh
 # installing home assist
 curl -sL "https://raw.githubusercontent.com/home-assistant/hassio-installer/master/hassio_install.sh" | sudo bash -s -- -m raspberrypi4
-':
 
