@@ -3,7 +3,7 @@
 # Script to kickstart raspberry pi-s client specific configurations
 
 E_NOARGS=85
-if [ -z "$1" ]; then
+if [ -z ${1+x} ]; then
   echo "Usage: $(basename "$0") [installationtype]"
   exit "$E_NOARGS"
 fi
@@ -25,7 +25,7 @@ generic_pwd="chocotemp"
 current_user=${USER}
 
 case "$1" in
-  "pihole"|"cobra"|"hifipi"|"retrodock"|"devpi")
+  "pihole"|"cobra"|"hifipi"|"dockassist"|"devpi"|"vinylstreamer")
     echo "Starting a $1 installation"
     ;;
   *)
