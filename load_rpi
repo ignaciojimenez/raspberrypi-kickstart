@@ -1,12 +1,26 @@
 #!/bin/bash
 #
-# Script flashes the sd card with the last version of the raspbian netinstall
+# Script flashes the sd card with an image containing the last raspbian netinstall version or a compressed img from an url
 
 set -e          # stop on errors
 set -u          # stop on unset variables
 set -o pipefail # stop on pipe failures
 
-# TODO Do it xD
+E_NOARGS=85
+url_regex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+if [ -z ${1+x} ]; then
+  echo "Usage: $(basename "$0") raspbian|downloadurl"
+  exit "$E_NOARGS"
+elif [[ "$1" = "raspbian" ]]; then
+  type="$1"
+elif [[ $1 =~ $url_regex ]]; then
+  type="$1"
+else
+  echo "Not recongnized paramenter. Usage: $(basename "$0") raspbian|https://download.url/"
+  exit 1
+fi
+
+# TODO Unlikely but do it xD
 get_what_disk() {
   local disks="$1"
   echo "${disks}"
@@ -64,23 +78,36 @@ move_image() {
   account="FooDeas"
   project="raspberrypi-ua-netinst"
   image_filter="img.bz2"
-  echo "Downloading last netinstall release: get_download_url ${account} ${project} ${image_filter}" >&2
-  download_url=$(get_latest_release_url ${account} ${project} ${image_filter})
+  if [[ $2 = "raspbian" ]]; then
+    echo "Getting last netinstall release: get_download_url ${account} ${project} ${image_filter}" >&2
+    download_url=$(get_latest_release_url ${account} ${project} ${image_filter})
+  else
+    download_url=$2
+  fi
   curl -s -L -O -J "${download_url}"
-  bz2_file=${download_url##*/}
+  compressed_file=${download_url##*/}
   echo "Downloaded url: ${download_url}" >&2
-  echo "Unzipping file: bunzip2 ${bz2_file}" >&2
-  bunzip2 "${bz2_file}"
+  extension=${compressed_file##*.}
+  if [ "$extension" = "bz2" ]; then
+    echo "Unzipping file: bunzip2 ${compressed_file}" >&2
+    bunzip2 "${compressed_file}"
+  else
+    echo "Unzipping file: unzip -o ${compressed_file} '*.img' " >&2
+    unzip -o "${compressed_file}" "*.img"
+    rm "${compressed_file}"
+  fi
   echo "Unmounting device: diskutil unmountDisk ${1}" >&2
   diskutil unmountDisk "${1}"
-  echo "Flashing device: sudo dd bs=1m if=${bz2_file%.*} of=/dev/r${1##*/}" >&2
-  sudo dd bs=1m if="${bz2_file%.*}" of=/dev/r"${1##*/}"
-  echo "Removing temp image file: rm ${bz2_file%.*}" >&2
-  rm "${bz2_file%.*}"
+  file_substring=$(echo "${compressed_file}" | cut -d . -f 1)
+  img_file=$(find . \( -name '*.img' -and -name "$file_substring*" \) -d 1)
+  echo "Flashing device: sudo dd bs=1m if=${img_file} of=/dev/r${1##*/}" >&2
+  sudo dd bs=1m if="${img_file}" of=/dev/r"${1##*/}"
+  echo "Removing temp files: rm ${file_substring}*" >&2
+  rm "${file_substring}"*
 }
 
 # main
 disk=$(disk_selection)
-move_image "${disk}"
+move_image "${disk}" "${type}"
 echo "-------------------------------------------------------"
 echo "Process finished succesfully"
