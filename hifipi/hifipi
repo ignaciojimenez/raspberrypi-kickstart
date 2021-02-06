@@ -16,10 +16,8 @@ echo "------------------------------------------------------"
 echo "removing USB audio deprioritization"
 echo "------------------------------------------------------"
 echo
-### TODO remove USB audio deprioritization
-cat /lib/modprobe.d/aliases.conf
-options snd-usb-audio index=-2
-# TODO Check if this actually works
+# remove USB audio deprioritization
+sudo sed -e '/snd-usb-audio/ s/^#*/#/' -i /lib/modprobe.d/aliases.conf
 # reloading systemd modules
 sudo systemctl restart systemd-modules-load.service
 
