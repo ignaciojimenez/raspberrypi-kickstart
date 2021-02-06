@@ -71,6 +71,9 @@ rndpwd=$(openssl rand -base64 45)
 echo "${rndpwd}" > /dev/shm/pwd
 chmod 600 /dev/shm/pwd
 echo -e "${generic_pwd}\n${rndpwd}\n${rndpwd}" | passwd
+# to manually reset the password later
+# echo -e "${rndpwd}\n${rndpwd}" | sudo passwd $USER
+
 
 echo "------------------------------------------------------"
 echo "Creating SSH key pair"
