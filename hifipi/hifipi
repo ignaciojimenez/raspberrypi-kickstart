@@ -36,7 +36,9 @@ autoreconf -i -f
 make
 sudo make install
 sudo systemctl enable shairport-sync
-amixer sset PCM,0 100%
+# adding choco to audio --> Needs re-login to be applied
+sudo usermod -aG audio ${USER}
+sudo amixer sset PCM,0 100%
 cd ..
 sudo rm -rf shairport-sync
 
