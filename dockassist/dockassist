@@ -31,6 +31,8 @@ sudo usermod -aG docker ${USER}
 #sudo curl https://download.docker.com/linux/raspbian/gpg
 #deb https://download.docker.com/linux/raspbian/ stretch stable
 sudo systemctl start docker.service
+# reloading the shell to reload user permissions
+sudo -iu ${USER}
 docker info
 
 echo
@@ -44,8 +46,5 @@ sudo apt-get install -y apparmor-utils avahi-daemon dbus jq network-manager soca
 # disabling modemmanager
 sudo systemctl disable ModemManager
 sudo systemctl stop ModemManager
-# installing docker
-curl -fsSL get.docker.com | sudo sh
-# installing home assist
-curl -sL "https://raw.githubusercontent.com/home-assistant/hassio-installer/master/hassio_install.sh" | sudo bash -s -- -m raspberrypi4
-
+# downloading and running home assist
+docker run --init -d --name="home-assistant" -e "TZ=America/New_York" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
