@@ -47,4 +47,4 @@ sudo apt-get install -y apparmor-utils avahi-daemon dbus jq network-manager soca
 sudo systemctl disable ModemManager
 sudo systemctl stop ModemManager
 # downloading and running home assist
-docker run --init -d --name="home-assistant" -e "TZ=America/New_York" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
+docker run --init -d --restart unless-stopped --name="home-assistant" -e "TZ=America/New_York" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
