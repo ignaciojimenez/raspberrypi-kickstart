@@ -38,8 +38,6 @@ sudo make install
 sudo systemctl enable shairport-sync
 # adding user to audio --> Needs re-login to be applied
 sudo usermod -aG audio ${USER}
-# adding cron entry to configura audtio to 100% after reboot
-echo "$(echo "@reboot /usr/bin/amixer sset PCM,0 100%" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 cd ..
 rm -rf shairport-sync
@@ -72,6 +70,14 @@ sudo sed -e '/bind_to_address/ s/^#*/#/' -i ${mpd_conf}
 # TODO in the past tabs failed
 echo 'zeroconf_enabled "yes"' | sudo tee -a ${mpd_conf} > /dev/null
 echo 'zeroconf_name "hifipi-mpd"' | sudo tee -a ${mpd_conf} > /dev/null
+
+echo "------------------------------------------------------"
+echo "Setting default volume configuration to 100"
+echo "------------------------------------------------------"
+# reloading the shell to reload user permissions - added to the audio group
+sudo -iu ${USER}
+amixer sset 'PCM',0 100%
+sudo alsactl store
 
 #echo "------------------------------------------------------"
 #echo "RetroPie Installation"
