@@ -90,7 +90,7 @@ sudo systemctl disable mongodb
 echo "------------------------------------------------------"
 echo "Adding pihole update to update script"
 echo "------------------------------------------------------"
-sed -i '7ipihole -up' ~/update
+sed -i '7ipihole -up' ~/.scripts/update
 
 echo "------------------------------------------------------"
 echo "adding dns_change to update dns configs in case the vpn is down"
