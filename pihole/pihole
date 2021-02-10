@@ -96,5 +96,5 @@ echo "------------------------------------------------------"
 echo "adding dns_change to update dns configs in case the vpn is down"
 echo "------------------------------------------------------"
 sudo apt-get install jq -y
-cp dns_checkandchange ~
-echo "$(echo "*/15 * * * * /bin/bash /home/${USER}/dns_checkandchange >> /home/${USER}/.log/dns 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+cp dns_checkandchange ~/.scripts
+echo "$(echo "*/15 * * * * /bin/bash /home/${USER}/.scripts/dns_checkandchange >> /home/${USER}/.log/dns 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
