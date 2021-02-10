@@ -108,13 +108,20 @@ echo "------------------------------------------------------"
 mkdir ~/.scripts
 
 echo "------------------------------------------------------"
-echo "Moving update script to ${HOME}/.scripts and it to crontab"
+echo "Moving update script to ${HOME}/.scripts and added it to crontab"
 echo "------------------------------------------------------"
 # downloading update.sh script
 cp common/update ~/.scripts
 sudo chmod +x ~/.scripts/update
 # install crontab to create system autoupdates
 echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/.scripts/update >> /home/${USER}/.log/update.log 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+echo "------------------------------------------------------"
+echo "Moving testweb script to ${HOME}/.scripts "
+echo "------------------------------------------------------"
+# downloading update.sh script
+cp common/testweb ~/.scripts
+sudo chmod +x ~/.scripts/testweb
 
 echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"

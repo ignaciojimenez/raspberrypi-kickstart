@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Notification script
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+usage(){
+  echo "Usage: $(basename "$0") webhook-id url texttotest"
+}
+
+E_NOARGS=85
+wh_regex="T\w*\/B\w*\/\w*"
+url_regex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+if [ -z ${1+x} ] || [ -z ${2+x} ] || [ -z ${3+x} ]; then
+  usage
+  exit "$E_NOARGS"
+elif ! [[ $1 =~ $wh_regex ]]; then
+  echo "Webhook format invalid. Expected format $wh_regex"
+  usage
+  exit 0
+elif ! [[ $2 =~ $url_regex ]]; then
+  echo "URL format invalid"
+  usage
+  exit 0
+fi
+
+#./testweb $(cat token) https://10.30.40.200:8443/manage/account/login?redirect=%2Fmanage%2Faccount%2F unifi-network-app-container
+wh=$1
+web=$2
+test_string=$3
+
+testweb() {
+  local web=$1
+  local test_string=$2
+  status_code=$(curl --max-time 5 --insecure -sIL -o /dev/null -w "%{http_code}" ${web})
+  curl --max-time 5 --insecure -sL -N ${web} | grep -q "${test_string}"
+  match_code=$?
+  if [ $status_code -ne 200 ]; then
+    echo "{\"text\":\"\`${web}\` appears to be down. Status code: \`${status_code}\` \n \"}"
+  elif [ $match_code -ne 0 ]; then
+    echo "{\"text\":\"\`${web}\` content does not match: \`${test_string}\` \n \"}"
+  else
+    echo "OK"
+  fi
+}
+
+result=$(testweb $web $test_string)
+
+webmonitor_hook="https://hooks.slack.com/services/$wh"
+notokfile=$(echo "$web" | awk -F/ '{print $3}')_notok
+if [ "$result" != "OK" ]; then
+  echo $(date) - $(basename "$0") - Website down: $result
+  if ! test -f "${notokfile}"; then
+    echo $(date) - $(basename "$0") - Calling webhook 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook > /dev/null'
+    echo $(date) - $(basename "$0") - Webhook result: $(curl --max-time 5 -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook)
+    touch ${notokfile}
+  fi
+elif test -f "${notokfile}"; then
+  echo $(date) - $(basename "$0") - Website down. Calling webhook: 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook)'
+  echo $(date) - $(basename "$0") - Webhook result: $(curl --max-time 5 -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`${web}\` is back online \n \"}" $webmonitor_hook)
+  rm ${notokfile}
+fi
