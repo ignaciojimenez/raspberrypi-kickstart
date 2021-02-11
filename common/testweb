@@ -8,6 +8,7 @@ set -o pipefail # stop on pipe failures
 
 usage(){
   echo "Usage: $(basename "$0") webhook-id url texttotest"
+  #./testweb $(cat token) https://10.30.40.200:8443/manage/account/login?redirect=%2Fmanage%2Faccount%2F unifi-network-app-container
 }
 
 E_NOARGS=85
@@ -26,7 +27,6 @@ elif ! [[ $2 =~ $url_regex ]]; then
   exit 0
 fi
 
-#./testweb $(cat token) https://10.30.40.200:8443/manage/account/login?redirect=%2Fmanage%2Faccount%2F unifi-network-app-container
 wh=$1
 web=$2
 test_string=$3
@@ -34,13 +34,13 @@ test_string=$3
 testweb() {
   local web=$1
   local test_string=$2
-  status_code=$(curl --max-time 5 --insecure -sIL -o /dev/null -w "%{http_code}" ${web})
-  curl --max-time 5 --insecure -sL -N ${web} | grep -q "${test_string}"
+  status_code=$(curl --max-time 10 --insecure -sIL -o /dev/null -w "%{http_code}" ${web})
+  curl --max-time 10 --insecure -sL -N ${web} | grep -q "${test_string}"
   match_code=$?
   if [ $status_code -ne 200 ]; then
-    echo "{\"text\":\"\`${web}\` appears to be down. Status code: \`${status_code}\` \n \"}"
+    echo "{\"text\":\"\`$(hostname)\` - \`${web}\` appears to be down. Status code: \`${status_code}\` \n \"}"
   elif [ $match_code -ne 0 ]; then
-    echo "{\"text\":\"\`${web}\` content does not match: \`${test_string}\` \n \"}"
+    echo "{\"text\":\"\`$(hostname)\` - \`${web}\` content does not match: \`${test_string}\` \n \"}"
   else
     echo "OK"
   fi
@@ -54,11 +54,11 @@ if [ "$result" != "OK" ]; then
   echo $(date) - $(basename "$0") - Website down: $result
   if ! test -f "${notokfile}"; then
     echo $(date) - $(basename "$0") - Calling webhook 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook > /dev/null'
-    echo $(date) - $(basename "$0") - Webhook result: $(curl --max-time 5 -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook)
+    echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook)
     touch ${notokfile}
   fi
 elif test -f "${notokfile}"; then
   echo $(date) - $(basename "$0") - Website down. Calling webhook: 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $webmonitor_hook)'
-  echo $(date) - $(basename "$0") - Webhook result: $(curl --max-time 5 -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`${web}\` is back online \n \"}" $webmonitor_hook)
+  echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${web}\` is back online \n \"}" $webmonitor_hook)
   rm ${notokfile}
 fi
