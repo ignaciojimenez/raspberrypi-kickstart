@@ -110,18 +110,25 @@ mkdir ~/.scripts
 echo "------------------------------------------------------"
 echo "Moving update script to ${HOME}/.scripts and added it to crontab"
 echo "------------------------------------------------------"
-# downloading update.sh script
 cp common/update ~/.scripts
 sudo chmod +x ~/.scripts/update
 # install crontab to create system autoupdates
 echo "$(echo "30 5 * * 1,2,3,4 bash /home/${USER}/.scripts/update >> /home/${USER}/.log/update.log 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
-echo "Moving testweb script to ${HOME}/.scripts "
+echo "Moving test scripts to ${HOME}/.scripts "
 echo "------------------------------------------------------"
-# downloading update.sh script
 cp common/testweb ~/.scripts
 sudo chmod +x ~/.scripts/testweb
+cp common/testvolumequota ~/.scripts
+sudo chmod +x ~/.scripts/testvolumequota
+
+echo "------------------------------------------------------"
+echo "adding capacity monitoring in root folder"
+echo "------------------------------------------------------"
+dir="/"
+threshold=60
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat /home/${USER}/.scripts/alert_token) ${dir} ${threshold} >> /home/${USER}/.log/quota_root 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
 echo "Restricting bashrc permissions"

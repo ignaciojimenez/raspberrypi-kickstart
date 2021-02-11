@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Notification script
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+usage(){
+  echo "Usage: $(basename "$0") webhook-id dir threshold"
+}
+
+E_NOARGS=85
+wh_regex="T\w*\/B\w*\/\w*"
+number_regex='^[0-9]+$'
+if [ -z ${1+x} ] || [ -z ${2+x} ] || [ -z ${3+x} ]; then
+  usage
+  exit "$E_NOARGS"
+elif ! [[ $1 =~ $wh_regex ]]; then
+  echo "Webhook format invalid. Expected format $wh_regex"
+  usage
+  exit 0
+elif ! [[ $3 =~ $number_regex ]]; then
+  echo "Number expected. Received $3"
+  usage
+  exit 0
+fi
+
+#./testvolumequota $(cat token) / 60
+wh=$1
+dir=$2
+threshold=$3
+
+testquota() {
+	local DIR=$1
+	local THRESHOLD=$2
+	local CURRENT=$(df $DIR | grep $DIR | awk '{ print $5}' | sed 's/%//g')
+	if [ "$CURRENT" -gt "$THRESHOLD" ] ; then
+	  echo "${CURRENT}"
+	else
+	  echo "OK"
+	fi
+}
+
+result=$(testquota $dir $threshold)
+
+slack_wh="https://hooks.slack.com/services/$wh"
+
+notokfile=${dir//\//_}_notok
+if [ "$result" != "OK" ]; then
+  echo $(date) - $(basename "$0") - Disk volume $dir over ${threshold}% capacity
+  if ! test -f "${notokfile}"; then
+    echo $(date) - $(basename "$0") - Calling webhook 'curl -X POST -H "Content-type: application/json" --data "{\"text\":\"Your server \`$(hostname)\` is currently at \`${result}%\` disk capacity.\n \`\`\`$(df -h)\`\`\` \"}" ${slack_wh}'
+    echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` is currently at \`${result}%\` disk capacity.\n \`\`\`$(df -h)\`\`\` \"}" ${slack_wh})
+    touch ${notokfile}
+  fi
+elif test -f "${notokfile}"; then
+  echo $(date) - $(basename "$0") - Disk volume $dir is again under ${threshold}% capacity
+  echo $(date) - $(basename "$0") - Disk volume again under quota: 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $slack_wh)'
+  echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${dir}\` disk quota is again under \`${threshold}%\` \n \"}" $slack_wh)
+  rm ${notokfile}
+fi

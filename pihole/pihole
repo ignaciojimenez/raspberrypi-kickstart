@@ -98,3 +98,18 @@ echo "------------------------------------------------------"
 sudo apt-get install jq -y
 cp dns_checkandchange ~/.scripts
 echo "$(echo "*/15 * * * * /bin/bash /home/${USER}/.scripts/dns_checkandchange >> /home/${USER}/.log/dns 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+echo "------------------------------------------------------"
+echo "adding webs to test to crontab"
+echo "------------------------------------------------------"
+url="https://localhost:8443/manage/account/login?redirect=%2Fmanage%2Faccount%2F"
+text="unifi-network-app-container"
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat /home/${USER}/.scripts/alert_token) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+url="https://www.alisios.es"
+text="Payment Methods:"
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat /home/${USER}/.scripts/alert_token) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+url="https://www.recordsdelmundo.es"
+text="esconder"
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat /home/${USER}/.scripts/alert_token) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -

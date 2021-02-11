@@ -55,15 +55,24 @@ echo "Backup restored, installing NTFS drivers and modifying fstab to automount 
 echo "------------------------------------------------------"
 sudo apt --yes install ntfs-3g
 #create mount point for
-sudo mkdir /mnt/almacenNTFS
-sudo chmod 777 /mnt/almacenNTFS/
+mnt=/mnt/almacenNTFS
+sudo mkdir ${mnt}
+sudo chmod 777 ${mnt}
 #add fstab entry
 sudo umount -a
-echo "UUID=9E783B49783B1F87 /mnt/almacenNTFS ntfs defaults,auto,umask=000,users,rw,nofail 0 0" | sudo tee -a /etc/fstab > /dev/null
+echo "UUID=9E783B49783B1F87 ${mnt} ntfs defaults,auto,umask=000,users,rw,nofail 0 0" | sudo tee -a /etc/fstab > /dev/null
 ssh ${cobra_original_user}@${cobra_original_ip} sudo umount -a
 echo "Remove HDD from OLD Pi and insert to the new PI. Once it is done, press return"
 read
 sudo mount -a
+
+echo "------------------------------------------------------"
+echo "adding capacity monitoring in mount folder"
+echo "------------------------------------------------------"
+dir=${mnt}
+threshold=95
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat /home/${USER}/.scripts/alert_token) ${dir} ${threshold} >> /home/${USER}/.log/quota_root 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
 
 echo "------------------------------------------------------"
 echo "HDD mounted, starting plex server again. Check in localhost:32400"
