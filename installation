@@ -122,6 +122,8 @@ cp common/testweb ~/.scripts
 sudo chmod +x ~/.scripts/testweb
 cp common/testvolumequota ~/.scripts
 sudo chmod +x ~/.scripts/testvolumequota
+cp common/testvolumemount ~/.scripts
+sudo chmod +x ~/.scripts/testvolumemount
 
 echo "------------------------------------------------------"
 echo "adding capacity monitoring in root folder"

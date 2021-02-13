@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Script to detect mount failures
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+usage(){
+  echo "Usage: $(basename "$0") webhook-id mountpoint"
+}
+
+E_NOARGS=85
+wh_regex="T\w*\/B\w*\/\w*"
+if [ -z ${1+x} ] || [ -z ${2+x} ] || [ -z ${3+x} ]; then
+  usage
+  exit "$E_NOARGS"
+elif ! [[ $1 =~ $wh_regex ]]; then
+  echo "Webhook format invalid. Expected format $wh_regex"
+  usage
+  exit 0
+fi
+
+#./testvolumequota $(cat token) / 60
+wh=$1
+mnt=$2
+
+slack_wh="https://hooks.slack.com/services/$wh"
+
+notokfile=${mnt//\//_}_notok
+if ! grep -qs ${mnt} /proc/mounts; then
+  echo "$(date) - $(basename "$0") - ERROR: Disk volume $mnt not mounted"
+  sudo umount -a || true
+  sleep 2
+  sudo mount -a || true
+  if ! grep -qs ${mnt} /proc/mounts; then
+    if ! test -f "${notokfile}"; then
+      echo $(date) - $(basename "$0") - Calling webhook 'curl -X POST -H "Content-type: application/json" --data "{\"text\":\"Your server \`$(hostname)\` is currently at \`${result}%\` disk capacity.\n \`\`\`$(df -h)\`\`\` \"}" ${slack_wh}'
+      echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${mnt}\` is not mounted \n \`\`\`$(df -aTh)\`\`\` \"}" ${slack_wh})
+      touch ${notokfile}
+    fi
+  elif test -f "${notokfile}"; then
+    echo "$(date) - $(basename $0) - Volume $mnt is again mounted"
+    echo $(date) - $(basename "$0") - Disk volume again under quota: 'curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${mnt}\` is mounted again \n \"}" $slack_wh)'
+    echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${mnt}\` is mounted again \n \"}" $slack_wh)
+    rm ${notokfile}
+  fi
+elif test -f "${notokfile}"; then
+  echo "$(date) - $(basename $0) - Volume $mnt is again mounted"
+  echo $(date) - $(basename "$0") - Volume again mounted: 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $slack_wh)'
+  echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${dir}\` disk quota is again under \`${threshold}%\` \n \"}" $slack_wh)
+  rm ${notokfile}
+fi

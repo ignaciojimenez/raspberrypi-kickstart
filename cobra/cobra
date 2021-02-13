@@ -71,7 +71,13 @@ echo "adding capacity monitoring in mount folder"
 echo "------------------------------------------------------"
 dir=${mnt}
 threshold=95
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat /home/${USER}/.scripts/alert_token) ${dir} ${threshold} >> /home/${USER}/.log/quota_root 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat /home/${USER}/.scripts/alert_token) ${dir} ${threshold} >> /home/${USER}/.log/quota_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+echo "------------------------------------------------------"
+echo "adding mountpoint monitoring in $mnt"
+echo "------------------------------------------------------"
+dir=${mnt}
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumemount $(cat /home/${USER}/.scripts/alert_token) ${dir} >> /home/${USER}/.log/mount_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 
 echo "------------------------------------------------------"
