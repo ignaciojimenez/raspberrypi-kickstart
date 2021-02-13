@@ -56,7 +56,7 @@ if [ "$result" != "OK" ]; then
   fi
 elif test -f "${notokfile}"; then
   echo $(date) - $(basename "$0") - Disk volume $dir is again under ${threshold}% capacity
-  echo $(date) - $(basename "$0") - Disk volume again under quota: 'curl -s -X POST -H 'Content-type: application/json' --data "$result" $slack_wh)'
+  echo $(date) - $(basename "$0") - Disk volume again under quota: 'curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${dir}\` disk quota is again under \`${threshold}%\` \n \"}" $slack_wh)'
   echo $(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "{\"text\":\"\`$(hostname)\` - \`${dir}\` disk quota is again under \`${threshold}%\` \n \"}" $slack_wh)
   rm ${notokfile}
 fi
