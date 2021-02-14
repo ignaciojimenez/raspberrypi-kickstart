@@ -35,7 +35,7 @@ testweb() {
   local web=$1
   local test_string=$2
   status_code=$(curl --max-time 10 --insecure -sIL -o /dev/null -w "%{http_code}" ${web})
-  curl --max-time 10 --insecure -sL -N ${web} | grep -q "${test_string}"
+  curl --max-time 20 --insecure -sL -N ${web} | grep -q "${test_string}"
   match_code=$?
   if [ $status_code -ne 200 ]; then
     echo "{\"text\":\"\`$(hostname)\` - \`${web}\` appears to be down. Status code: \`${status_code}\` \n \"}"
