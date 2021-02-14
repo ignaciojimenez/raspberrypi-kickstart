@@ -12,7 +12,7 @@
     "blocklist-url": "http://john.bitsurge.net/public/biglist.p2p.gz",
     "cache-size-mb": 4,
     "dht-enabled": true,
-    "download-dir": "/mnt/almacenNTFS/Descargas/final/",
+    "download-dir": "/mnt/almacenNTFS/Descargas/ready/",
     "download-limit": 100,
     "download-limit-enabled": 0,
     "download-queue-enabled": true,
