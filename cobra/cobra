@@ -1,11 +1,10 @@
-#!/usr/bin/env bash
-# 
+#!/bin/bash
+#
 # Script to kickstart raspbmc and torrent client specific configurations
 
-# set -o errexit
-# set -o pipefail
-# set -o nounset
-# set -o xtrace
+set -o errexit
+set -o pipefail
+set -o nounset
 
 echo
 echo "------------------------------------------------------"
@@ -97,18 +96,19 @@ sudo chown debian-transmission:debian-transmission /etc/transmission-daemon/sett
 sudo systemctl start transmission-daemon
 
 echo "------------------------------------------------------"
-echo "Installing pip3 feedbarser"
+echo "Installing pip3 dependencies"
 echo "------------------------------------------------------"
 # installing python pip
 sudo apt --yes install python3-pip
-#installing rss parser pip package
 pip3 install feedparser
+pip3 install tvnamer
+
 
 echo "------------------------------------------------------"
-echo "Installing pip3 tvnamer"
+echo "Installing and configuring incron"
 echo "------------------------------------------------------"
-#installing tvnamer pip package
-pip3 install tvnamer
+sudo apt-get install incron
+echo "${USER}" | sudo tee -a /etc/incron.allow > /dev/null
 
 echo "------------------------------------------------------"
 echo "Cloning cobra git repo"
@@ -136,26 +136,28 @@ mv ~/*.ini ~/.cobra/auth
 sudo chown -R ${USER}:${USER} ~/.cobra/auth
 
 echo "------------------------------------------------------"
-echo "Modifying crontab"
+echo "Modifying crontab and incron"
 echo "------------------------------------------------------"
 #install crontab
 #echo "$(echo '* 1 * * * some_command' ; crontab -l)" | crontab -
-echo "$(echo "05 * * * * /usr/bin/python3 /home/${USER}/.local/bin/tvnamer -q -b -c /home/${USER}/.cobra/mytvnamerconfig.json /mnt/almacenNTFS/Descargas/ready >> /home/${USER}/.cobra/logs/tvnamer.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
-echo "$(echo "03 * * * * /usr/bin/python3 /home/${USER}/.cobra/renamenew.py >> /home/${USER}/.cobra/logs/rename.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
-echo "$(echo "@hourly /bin/bash /home/${USER}/.cobra/zmovetorrent.sh >> /home/${USER}/.cobra/logs/move.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
 echo "$(echo "@hourly /usr/bin/python3 /home/${USER}/.cobra/rss.py >> /home/${USER}/.cobra/logs/rss.log 2>&1" ; crontab -u ${USER} -l)" | crontab -u ${USER} -
+echo "${mnt}/Descargas/ready IN_CREATE /bin/bash /home/${USER}/.cobra/incron_transmission_action" | sudo tee -a /var/spool/incron/${USER} > /dev/null
+sudo chown ${USER}:incron /var/spool/incron/${USER}
+chmod 600 /var/spool/incron/${USER}
+sudo service incron reload
+
 
 echo "------------------------------------------------------"
 echo "Instaling samba and modifying samba share configs"
 echo "------------------------------------------------------"
 # installing samba to access the shared files
 sudo apt --yes install samba samba-common-bin
-sudo chown -R nobody.nogroup /mnt/almacenNTFS/
-sudo chmod -R 777 /mnt/almacenNTFS/
+sudo chown -R nobody.nogroup ${mnt}
+sudo chmod -R 777 ${mnt}
 sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.old
 echo "[Plex_Storage]" | sudo tee -a /etc/samba/smb.conf > /dev/null
 echo "  browseable = yes" | sudo tee -a /etc/samba/smb.conf > /dev/null
-echo "  path = /mnt/almacenNTFS" | sudo tee -a /etc/samba/smb.conf > /dev/null
+echo "  path = ${mnt}" | sudo tee -a /etc/samba/smb.conf > /dev/null
 echo "  guest ok = yes" | sudo tee -a /etc/samba/smb.conf > /dev/null
 echo "  read only = no" | sudo tee -a /etc/samba/smb.conf > /dev/null
 echo "  create mask = 777" | sudo tee -a /etc/samba/smb.conf > /dev/null
