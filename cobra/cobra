@@ -66,23 +66,29 @@ read
 sudo mount -a
 
 echo "------------------------------------------------------"
+echo "HDD mounted, starting plex server again. Check in localhost:32400"
+echo "------------------------------------------------------"
+systemctl start plexmediaserver
+
+alert_token_path="/home/${USER}/.scripts/alert_token"
+echo "------------------------------------------------------"
 echo "adding capacity monitoring in mount folder"
 echo "------------------------------------------------------"
 dir=${mnt}
 threshold=95
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat /home/${USER}/.scripts/alert_token) ${dir} ${threshold} >> /home/${USER}/.log/quota_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat "${alert_token_path}") ${dir} ${threshold} >> /home/${USER}/.log/quota_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
 echo "adding mountpoint monitoring in $mnt"
 echo "------------------------------------------------------"
 dir=${mnt}
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumemount $(cat /home/${USER}/.scripts/alert_token) ${dir} >> /home/${USER}/.log/mount_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
-
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumemount $(cat "${alert_token_path}") ${dir} >> /home/${USER}/.log/mount_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
-echo "HDD mounted, starting plex server again. Check in localhost:32400"
+echo "adding vpn_status monitoring"
 echo "------------------------------------------------------"
-systemctl start plexmediaserver
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvpn $(cat "${alert_token_path}") eth0 >> /home/${USER}/.log/vpn_status 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
 
 echo "------------------------------------------------------"
 echo "Installing transmission and importing settings.json from gist"
@@ -102,7 +108,6 @@ echo "------------------------------------------------------"
 sudo apt --yes install python3-pip
 pip3 install feedparser
 pip3 install tvnamer
-
 
 echo "------------------------------------------------------"
 echo "Installing and configuring incron"
@@ -145,7 +150,6 @@ echo "${mnt}/Descargas/ready IN_CREATE /bin/bash /home/${USER}/.cobra/incron_tra
 sudo chown ${USER}:incron /var/spool/incron/${USER}
 chmod 600 /var/spool/incron/${USER}
 sudo service incron reload
-
 
 echo "------------------------------------------------------"
 echo "Instaling samba and modifying samba share configs"
