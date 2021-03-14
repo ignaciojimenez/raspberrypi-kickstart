@@ -76,18 +76,18 @@ echo "adding capacity monitoring in mount folder"
 echo "------------------------------------------------------"
 dir=${mnt}
 threshold=95
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota $(cat "${alert_token_path}") ${dir} ${threshold} >> /home/${USER}/.log/quota_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumequota \$(cat ${alert_token_path}) ${dir} ${threshold} >> /home/${USER}/.log/quota_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
 echo "adding mountpoint monitoring in $mnt"
 echo "------------------------------------------------------"
 dir=${mnt}
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumemount $(cat "${alert_token_path}") ${dir} >> /home/${USER}/.log/mount_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvolumemount \$(cat ${alert_token_path}) ${dir} >> /home/${USER}/.log/mount_${dir//\//_} 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 echo "------------------------------------------------------"
 echo "adding vpn_status monitoring"
 echo "------------------------------------------------------"
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvpn $(cat "${alert_token_path}") eth0 >> /home/${USER}/.log/vpn_status 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testvpn \$(cat ${alert_token_path}) eth0 >> /home/${USER}/.log/vpn_status 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
 
 echo "------------------------------------------------------"
