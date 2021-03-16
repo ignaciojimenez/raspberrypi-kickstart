@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Script to kickstart vinylstreamer specific configurations
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+echo
+echo "------------------------------------------------------"
+echo "Beginning Vinylstreamer script"
+echo "------------------------------------------------------"
+echo
+
+# Installing mpd client
+sudo apt install -y mpc
+
+#mpc --host=10.30.80.100 volume 100
+#mpc --host=10.30.80.100 add http://igor.torontocast.com:2100/stream
+#mpc --host=10.30.80.100 play
+#mpc --host=10.30.80.100 stop
