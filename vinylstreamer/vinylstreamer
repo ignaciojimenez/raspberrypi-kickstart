@@ -12,10 +12,188 @@ echo "Beginning Vinylstreamer script"
 echo "------------------------------------------------------"
 echo
 
-# Installing mpd client
-sudo apt install -y mpc
+echo "------------------------------------------------------"
+echo "Disabling the screen of the pi on boot via init.d script"
+echo "------------------------------------------------------"
+# disabling the screen of the pi on boot via init.d script
+sudo cp ../common/tvoff /etc/init.d/tvoff
+sudo chmod 755 /etc/init.d/tvoff
+sudo update-rc.d tvoff defaults
 
+echo "------------------------------------------------------"
+echo "removing USB audio deprioritization"
+echo "------------------------------------------------------"
+echo
+# remove USB audio deprioritization
+sudo sed -e '/snd-usb-audio/ s/^#*/#/' -i /lib/modprobe.d/aliases.conf
+# reloading systemd modules (unsure if this really reloads them)
+sudo systemctl restart systemd-modules-load.service
+
+echo "------------------------------------------------------"
+echo "Installing alsa utils and adding the user to audio group"
+echo "------------------------------------------------------"
+echo
+sudo apt-get install -y alsa-utils
+# adding user to audio --> Needs re-login to be applied
+sudo usermod -aG audio ${USER}
+#sudo -iu ${USER}
+
+echo "------------------------------------------------------"
+echo "Copying asound.conf"
+echo "------------------------------------------------------"
+echo
+# usefull info for dsnooping
+# https://bugzilla.redhat.com/show_bug.cgi?id=130593#c19
+# https://wiki.archlinux.org/index.php/Advanced_Linux_Sound_Architecture/Troubleshooting#Setting_the_default_microphone.2Fcapture_device
+# https://bbs.archlinux.org/viewtopic.php?id=159492
+sudo cp asound.conf /etc/
+# reloading alsa lib - requires restart iirc
+sudo alsactl restore
+
+echo "------------------------------------------------------"
+echo "Installing icecast2"
+echo "------------------------------------------------------"
+echo
+# Will be used to expose an audio stream to the network
+echo "This will require to generate a password. Open password manager and be ready"
+sleep 3
+sudo apt-get install -yq icecast2
+
+echo "------------------------------------------------------"
+echo "Installing and configuring liquidsoap"
+echo "------------------------------------------------------"
+echo
+# liquidsoap-plugins-all appears to be deprecated.
+echo "Installing Liquisoap"
+# Will be used to create the audio stream to be used by Icecast
+sudo apt-get install -y --allow-unauthenticated liquidsoap
+
+ls_name="phono"
+#change var/log permissions -- pending to define user that will run the phono.liq script
+chmod 666 /var/log/liquidsoap/${ls_name}.log
+
+# we get the icecast source password
+ic_conf="/etc/icecast2/icecast.xml"
+if ! test -f "${ic_conf}"; then
+    ic_password="hackme"
+    echo "---- WARNING: Using default password instead. Icecast config file not present in: $ic_conf"
+else
+    ic_password=$(sudo grep source-password $ic_conf | sed -r 's/<source-password>(.*)<\/source-password>/\1/' | tr -d '[:blank:]')
+fi
+
+stream_name="Turntable_stream"
+# now we create the script file
+mkdir ~/liquidsoap
+{
+    echo '#!/usr/bin/liquidsoap'
+    echo "# configuring to run as a daemon by user ${USER}"
+    echo "set(\"init.daemon\",true)"
+    echo "set(\"init.daemon.change_user\",true)"
+    echo "set(\"init.daemon.change_user.group\",\"${USER}\")"
+    echo "set(\"init.daemon.change_user.user\",\"${USER}\")"
+    echo "set(\"init.daemon.pidfile\",true)"
+    echo "set(\"init.daemon.pidfile.path\",\"/tmp/${ls_name}.liq.pid\")"
+    echo "# setting logfile for troubleshooting"
+    echo "set(\"log.file.path\",\"/var/log/liquidsoap/${ls_name}.log\")"
+    echo "# seetting global sampling rate"
+    echo "set(\"frame.audio.samplerate\",48000)"
+    echo "#input from soundcard"
+    echo "input_stream=input.alsa(bufferize=true,fallible=false)"
+    echo "#stream it to local icecast, default port and password"
+    echo "output.icecast(%ogg(%flac(samplerate=48000,channels=2,compression=5,bits_per_sample=16)), mount=\"${ls_name}.ogg\", name=\"${stream_name}\", format=\"audio/ogg\", description=\"Turntable FLAC stream\", genre = \"Sepsi\", password=\"${ic_password}\", input_stream)"
+} >> ~/liquidsoap/${ls_name}.liq
+
+# making the script executable
+chmod +x ~/liquidsoap/${ls_name}.liq
+
+# installing the script as a service
+{
+    echo "[Unit]"
+    echo "Description=${ls_name}.liq Liquidsoap daemon"
+    echo "After=sound.target"
+    echo
+    echo "[Service]"
+    echo "Type=forking"
+    echo "User=${USER}"
+    echo "ExecStartPre=/bin/sleep 5"
+    echo "PIDFile=/tmp/${ls_name}.liq.pid"
+    echo "ExecStart=/usr/bin/liquidsoap /home/${USER}/liquidsoap/${ls_name}.liq"
+    echo "Restart=always"
+    echo 
+    echo "[Install]"
+    echo "WantedBy=multi-user.target"
+    echo "Alias=${ls_name}_liquidsoap.service"
+} >> phono_liquidsoap.service
+sudo cp phono_liquidsoap.service /etc/systemd/system/
+sudo systemctl daemon-reload
+
+sudo systemctl enable phono_liquidsoap.service 
+sudo systemctl start phono_liquidsoap.service 
+
+echo "------------------------------------------------------"
+echo "Installing mpc which will control hifipi remotely"
+echo "------------------------------------------------------"
+echo
+echo "Installing mpc (mpd-client)"
+# Will be used to remotely control hifipi mpd server
+sudo apt-get install -y mpc
+
+hifipi_ip="10.30.80.100"
+my_ip=$(hostname -I)
+def_icecast_port="8000"
+# we clear previous playlists
+mpc --host=${hifipi_ip} clear
+# add the stream to the playlist
+mpc --host=${hifipi_ip} add http://"${my_ip}":${def_icecast_port}/${ls_name}.ogg
+# we check if the playlist was added
+remote_stream_name=$(mpc --host=${hifipi_ip} playlist)
+[[ $stream_name != "$remote_stream_name" ]] && echo "WARNING: remote stream was not properly configured"
+
+#basic mpc guidance
 #mpc --host=10.30.80.100 volume 100
-#mpc --host=10.30.80.100 add http://igor.torontocast.com:2100/stream
+#mpc --host=10.30.80.100 clear
+#mpc --host=10.30.80.100 add http://10.30.80.101:8000/phono.ogg
+#mpc --host=10.30.80.100 playlist  --> returns $icecast_name
 #mpc --host=10.30.80.100 play
 #mpc --host=10.30.80.100 stop
+
+echo "------------------------------------------------------"
+echo "detect audio script deployment"
+echo "------------------------------------------------------"
+echo
+# Installing venv for python
+sudo apt-get -y install python3-venv
+
+# TODO detect_audio.py has hardcoded hifipi IP. Should be changed dinamically if required (not now)
+d_audio_dir="detectaudio"
+mkdir ~/${d_audio_dir}
+cp detect_audio.py ~/${d_audio_dir}/
+cp requirements.txt ~/${d_audio_dir}/
+/usr/bin/python3 -m venv ~/${d_audio_dir}/venv
+source ~/${d_audio_dir}/venv/bin/activate
+pip install -r ~/${d_audio_dir}/requirements.txt
+# adding proper shebang to the detect_audio.py
+sed -i "1i"'#!'"$(which python)" ~/${d_audio_dir}/detect_audio.py
+deactivate
+
+# installing the script as a service
+{
+    echo "[Unit]"
+    echo "Description=Detect audio service - python"
+    echo "After=sound.target"
+    echo
+    echo "[Service]"
+    echo "User=${USER}"
+    echo "ExecStartPre=/bin/sleep 5"
+    echo "ExecStart=/home/${USER}/${d_audio_dir}/detect_audio.py"
+    echo "Restart=always"
+    echo
+    echo "[Install]"
+    echo "WantedBy=multi-user.target"
+    echo "Alias=detect_audio.service"
+} >> detect_audio.service
+sudo cp detect_audio.service /etc/systemd/system/
+sudo systemctl daemon-reload
+
+sudo systemctl enable detect_audio.service
+sudo systemctl start detect_audio.service
