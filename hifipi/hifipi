@@ -57,6 +57,16 @@ sudo apt-get update
 # install raspspotify
 sudo apt-get -y install raspotify
 
+# configuring raspotify by default
+{
+    echo
+    echo "#### Custom Configs for ${USER} ####"
+    echo
+    echo 'BITRATE="320"'
+    echo 'VOLUME_ARGS="--initial-volume=100"'
+} | sudo tee -a /etc/default/raspotify > /dev/null
+
+
 echo "------------------------------------------------------"
 echo "Installing mpd - music daemon to play streams"
 echo "------------------------------------------------------"
