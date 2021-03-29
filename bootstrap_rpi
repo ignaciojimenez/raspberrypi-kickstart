@@ -3,7 +3,7 @@
 # Script that loads specific configurations for different kinds of pis
 
 E_NOARGS=85
-if [ -z "$1" ]; then
+if [ -z ${1+x} ]; then
   echo "Usage: $(basename "$0") [installationtype]"
   exit "$E_NOARGS"
 fi
@@ -15,58 +15,64 @@ set -o pipefail # stop on pipe failures
 common() {
   file="${1}"
   type="${2}"
-  # First, basic config parameters
-  echo "preset=server" >>"${file}"
-  echo "firmware_packages=1" >>"${file}"
-  echo "packages=vim,fail2ban,curl,git" >>"${file}"
+  {
+    # First, basic config parameters
+    echo "preset=server" 
+    echo "firmware_packages=1" 
+    echo "packages=vim,fail2ban,curl,git,dnsutils,jq" 
 
-  # SSH config
-  echo 'root_ssh_pubkey=""' >>"${file}"
-  echo "root_ssh_pwlogin=0" >>"${file}"
+    # SSH config
+    echo 'root_ssh_pubkey=""' 
+    echo "root_ssh_pwlogin=0" 
 
-  # User config
-  echo "username=choco" >>"${file}"
-  echo "userpw=chocotemp" >>"${file}"
-  echo "userperms_admin=1" >>"${file}"
+    # User config
+    echo "username=choco" 
+    echo "userpw=chocotemp" 
+    echo "userperms_admin=1" 
 
-  # disabling ipv6
-  echo "ip_ipv6=0" >>"${file}"
+    # disabling ipv6
+    echo "ip_ipv6=0" 
 
-  # Locale configs
-  echo 'locales="en_US.UTF-8,es_ES.UTF-8"' >>"${file}"
-  echo 'system_default_locale="en_US.UTF-8"' >>"${file}"
-  echo "timezone=Europe/Amsterdam" >>"${file}"
+    # Locale configs
+    echo 'locales="en_US.UTF-8"' 
+    echo 'system_default_locale="en_US.UTF-8"' 
+    echo "timezone=Europe/Amsterdam" 
 
-  # dont cleanup installation files after finishing (to reinstall if necessary)
-  echo "cleanup=0" >>"${file}"
+    # dont cleanup installation files after finishing (to reinstall if necessary)
+    echo "cleanup=0" 
 
-  # enable file watchdog capabilities
-  echo "watchdog_enable=1" >>"${file}"
+    # enable file watchdog capabilities
+    echo "watchdog_enable=1" 
 
-  # writting hostname
-  echo "hostname=${type}" >>"${file}"
+    # writting hostname
+    echo "hostname=${type}" 
+  } >> "${file}"
 
   echo "OK"
 }
 
-retrodock() {
+dockassist() {
   echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
   echo "OK"
 }
 
 pihole() {
-  echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
-  echo "ip_addr=10.30.40.200" >> "${1}"
-  echo "ip_netmask=255.255.255.0" >> "${1}"
-  echo "ip_gateway=10.30.40.254" >> "${1}"
-  echo "ip_nameservers=1.1.1.1" >> "${1}"
-  echo "gpu_mem=16" >> "${1}"
+  {
+    echo 'dt_overlays="disable-wifi,disable-bt"'
+    echo "ip_addr=10.30.40.200"
+    echo "ip_netmask=255.255.255.0"
+    echo "ip_gateway=10.30.40.254"
+    echo "ip_nameservers=1.1.1.1"
+    echo "gpu_mem=16"
+  } >> "${1}"
   echo "OK"
 }
 
 cobra() {
   echo 'dt_overlays="disable-wifi,disable-bt"' >> "${1}"
   echo "gpu_mem=16" >> "${1}"
+  # TODO Copy files from /Users/choco/Documents/Workspaces/cobra/auth and create the whole path
+  # TODO see /Users/choco/Desktop/MisDocs/Tech/projects/netinstalls/cobra/raspberrypi-ua-netinst/config/files
   echo "OK"
 }
 
@@ -77,19 +83,37 @@ devpi() {
 }
 
 hifipi() {
-  echo 'dt_overlays="hifiberry-dacplus,disable-bt"' >> "${1}"
-  echo "gpu_mem=16" >> "${1}"
-  echo "ifname=wlan0" >> "${1}"
-  echo "wlan_country=NL" >> "${1}"
-  echo
-  echo "------------------ WARNING----------------------" >&2
-  echo "wlan_psk needs to be configured manually" >&2
-  echo "System will not boot" >&2
-  echo "-------------------WARNING----------------------" >&2
-  echo
-  echo "wlan_ssid=estonoesmazagon" >> "${1}"
-  echo "wlan_psk=********" >> "${1}"
+  {
+    # not using hifiberry for the time being
+    #echo 'dt_overlays="hifiberry-dacplus"' >> "${1}"
+    # not anymore just in case we use it for retropie
+    #echo "gpu_mem=16"
+    echo 'dt_overlays="disable-bt"'
+    echo "ifname=wlan0"
+    echo "wlan_country=NL"
+    echo "wlan_ssid=${wifi_ssid}"
+    echo "wlan_psk=$(get_wifi_pass)"
+  }  >> "${1}"
   echo "OK"
+}
+
+vinylstreamer() {
+  {
+    echo 'dt_overlays="disable-bt"'
+    echo "gpu_mem=16"
+    echo "ifname=wlan0"
+    echo "wlan_country=NL"
+    echo "wlan_ssid=${wifi_ssid}"
+    echo "wlan_psk=$(get_wifi_pass)"
+  }  >> "${1}"
+  echo "OK"
+}
+
+get_wifi_pass(){
+  # here we gather the password that will be used later to configure liquidsoap (could be)
+  echo -n "Please enter wifi [${wifi_ssid}] password:" >&2
+  read -r -s password
+  echo "$password"
 }
 
 # TODO read volume name from arg input (not needed atm - NO NAME is created by default)
@@ -97,14 +121,14 @@ volume_name="NO NAME"
 config_path="/Volumes/${volume_name}/raspberrypi-ua-netinst/config"
 
 case "$1" in
-"pihole" | "cobra" | "hifipi" | "retrodock" | "devpi")
+"pihole"|"cobra"|"hifipi"|"dockassist"|"devpi"|"vinylstreamer")
   echo "-------------------------------------------------------"
   echo "Copying bootstrap $1 configs to ${volume_name}"
   echo "-------------------------------------------------------"
   install_type="$1"
   ;;
 *)
-  echo "Wrong parameter. Use: pihole|cobra|hifipi|retrodock|devpi"
+  echo "Wrong parameter. Use: pihole|cobra|hifipi|dockassist|devpi|vinylstreamer"
   exit 1
   ;;
 esac
@@ -112,6 +136,7 @@ esac
 [ ! -d "${config_path}" ] && echo "Error: Directory ${config_path} DOES NOT exist." && exit 1
 
 install_config="${config_path}/installer-config.txt"
+wifi_ssid="estonoesmazagon"
 
 echo
 echo "-------------------------------------------------------"
@@ -125,7 +150,7 @@ echo
 echo "-------------------------------------------------------"
 echo "Copying ${install_type} specific configs to ${install_config}"
 echo "-------------------------------------------------------"
-test_particular=$(${install_type} "${install_config}")
+test_particular=$($install_type "${install_config}")
 [[ $test_particular != "OK" ]] && echo "Error: problem in writting ${install_type} configs to ${install_config}" && exit 1
 echo "SUCCES:${install_type} configurations copied"
 
@@ -135,11 +160,11 @@ echo "-------------------------------------------------------"
 echo "Writting post-install script to ${post_install_config}"
 echo "-------------------------------------------------------"
 {
-  echo 'echo "#!/bin/bash" > /rootfs/etc/rc.local';
-  echo 'echo "sleep 7" >> /rootfs/etc/rc.local';
-  echo 'echo "URL="https://raw.githubusercontent.com/ignaciojimenez/raspberrypi-kickstart/master/kickstart"" >> /rootfs/etc/rc.local';
-  echo 'echo "cd /home/${username} && { sudo -u ${username} "curl -s -L -O -J \${URL}" ; chmod +x \${URL##*/} ; cd -; }" >> /rootfs/etc/rc.local';
-  echo 'echo "rm \$0" >> /rootfs/etc/rc.local';
-  echo 'chmod 777 /rootfs/etc/rc.local';
+  echo 'echo "#!/bin/bash" > /rootfs/etc/rc.local'
+  echo 'echo "sleep 7" >> /rootfs/etc/rc.local'
+  echo 'echo "URL="https://raw.githubusercontent.com/ignaciojimenez/raspberrypi-kickstart/master/kickstart"" >> /rootfs/etc/rc.local'
+  echo 'echo "cd /home/${username} && { sudo -u ${username} "curl -s -L -O -J \${URL}" ; chmod +x \${URL##*/} ; cd -; }" >> /rootfs/etc/rc.local'
+  echo 'echo "rm \$0" >> /rootfs/etc/rc.local'
+  echo 'chmod 777 /rootfs/etc/rc.local'
 } >> "${post_install_config}"
 echo "SUCCES:${post_install_config} configuration file written"
