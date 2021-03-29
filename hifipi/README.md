@@ -1,9 +1,8 @@
 ## Description
-This raspberry pi will use a [Hifiberry](https://www.hifiberry.com/) hat to stream high quality audio received via Airplay using [shairport](https://github.com/mikebrady/shairport-sync) or Spotify connect using [raspotify](https://github.com/dtcooper/raspotify) 
+This raspberry pi will use a [Hifiberry](https://www.hifiberry.com/) hat (now it's using a USB DAC) to play high quality audio received via Airplay using [shairport](https://github.com/mikebrady/shairport-sync) or Spotify connect via [raspotify](https://github.com/dtcooper/raspotify). It also runs mpd and is used to play streams controlled by remote clients such as `vinylstreamer`
 
 ## Required files
 None
 
 ## TODO
-- [x] ~~Create a VPN server to allow the the hifipi to act as a VPN gateway~~ Discarded
-- [x] ~~This script hasn't been tested yet~~
+
