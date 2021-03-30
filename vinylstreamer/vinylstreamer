@@ -84,12 +84,12 @@ if ! test -f "${ic_conf}"; then
     ic_password="hackme"
     echo "---- WARNING: Using default password instead. Icecast config file not present in: $ic_conf"
 else
-    ic_password=$(sudo grep source-password $ic_conf | sed -r 's/<source-password>(.*)<\/source-password>/\1/' | tr -d '[:blank:]')
+    ic_password=$(sudo grep source-password $ic_conf | sed -r 's/<source-password>(.*)<\/source-password>/\1/' | xargs)
 fi
 
 stream_name="Turntable_stream"
 # now we create the script file
-mkdir ~/liquidsoap
+mkdir -p ~/liquidsoap
 {
     echo '#!/usr/bin/liquidsoap'
     echo "# configuring to run as a daemon by user ${USER}"
@@ -129,12 +129,13 @@ chmod +x ~/liquidsoap/${ls_name}.liq
     echo "[Install]"
     echo "WantedBy=multi-user.target"
     echo "Alias=${ls_name}_liquidsoap.service"
-} >> phono_liquidsoap.service
-sudo cp phono_liquidsoap.service /etc/systemd/system/
+} >> ${ls_name}_liquidsoap.service
+sudo cp ${ls_name}_liquidsoap.service /lib/systemd/system/
 sudo systemctl daemon-reload
 
-sudo systemctl enable phono_liquidsoap.service 
-sudo systemctl start phono_liquidsoap.service 
+sudo systemctl enable ${ls_name}_liquidsoap.service 
+sudo systemctl start ${ls_name}_liquidsoap.service 
+rm ${ls_name}_liquidsoap.service
 
 echo "------------------------------------------------------"
 echo "Installing mpc which will control hifipi remotely"
@@ -145,7 +146,7 @@ echo "Installing mpc (mpd-client)"
 sudo apt-get install -y mpc
 
 hifipi_ip="10.30.80.100"
-my_ip=$(hostname -I)
+my_ip=$(hostname -I | xargs)
 def_icecast_port="8000"
 # we clear previous playlists
 mpc --host=${hifipi_ip} clear
@@ -172,15 +173,21 @@ sudo apt-get -y install python3-venv
 
 # TODO detect_audio.py has hardcoded hifipi IP. Should be changed dinamically if required (not now)
 d_audio_dir="detectaudio"
-mkdir ~/${d_audio_dir}
+mkdir -p ~/${d_audio_dir}
 cp detect_audio.py ~/${d_audio_dir}/
 cp requirements.txt ~/${d_audio_dir}/
 /usr/bin/python3 -m venv ~/${d_audio_dir}/venv
-source ~/${d_audio_dir}/venv/bin/activate
+activate () {
+    . ~/${d_audio_dir}/venv/bin/activate
+}
+activate
 pip install -r ~/${d_audio_dir}/requirements.txt
 # adding proper shebang to the detect_audio.py
 sed -i "1i"'#!'"$(which python)" ~/${d_audio_dir}/detect_audio.py
+# deactivate script does some incorrect variable handling so I'm skipping
+set +u
 deactivate
+set -u
 
 # installing the script as a service
 {
@@ -198,7 +205,7 @@ deactivate
     echo "WantedBy=multi-user.target"
     echo "Alias=detect_audio.service"
 } >> detect_audio.service
-sudo cp detect_audio.service /etc/systemd/system/
+sudo cp detect_audio.service /lib/systemd/system/
 sudo systemctl daemon-reload
 
 sudo systemctl enable detect_audio.service
