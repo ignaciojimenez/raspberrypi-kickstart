@@ -75,7 +75,8 @@ sudo apt-get install -y --allow-unauthenticated liquidsoap
 
 ls_name="phono"
 #change var/log permissions -- pending to define user that will run the phono.liq script
-chmod 666 /var/log/liquidsoap/${ls_name}.log
+sudo touch /var/log/liquidsoap/${ls_name}.log
+sudo chmod 666 /var/log/liquidsoap/${ls_name}.log
 
 # we get the icecast source password
 ic_conf="/etc/icecast2/icecast.xml"
