@@ -48,7 +48,12 @@ echo
 # https://bbs.archlinux.org/viewtopic.php?id=159492
 sudo cp asound.conf /etc/
 # reloading alsa lib - requires restart iirc
-sudo alsactl restore
+# ----- sudo alsactl restore
+# TODO this fails and I dont know exactly why
+# alsactl: load_state:1683: Cannot open /var/lib/alsa/asound.state for reading: No such file or directory
+# Found hardware: "USB-Audio" "USB Mixer" "USB08bb:2902" "" ""
+# Hardware is initialized using a generic method
+
 
 echo "------------------------------------------------------"
 echo "Installing icecast2"
