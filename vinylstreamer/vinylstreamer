@@ -183,7 +183,7 @@ activate () {
 activate
 pip install -r ~/${d_audio_dir}/requirements.txt
 # adding proper shebang to the detect_audio.py
-sed -i "1i"'#!'"$(which python)" ~/${d_audio_dir}/detect_audio.py
+sed -i "1i"'#!'"$(which python) -u" ~/${d_audio_dir}/detect_audio.py
 # deactivate script does some incorrect variable handling so I'm skipping
 set +u
 deactivate
