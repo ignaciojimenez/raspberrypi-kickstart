@@ -46,7 +46,7 @@ def listen():
                 if received_stream != ls_stream:
                     sys.stderr.write(f"Unexpected stream response. Received:{received_stream}, expected:{ls_stream}. Command:{start.args} mpc clear and add playlist again\n")
                 else:
-                    sys.stdout.write(f"mpc output:{start.stdout}")
+                    sys.stdout.write(f"mpc output:\n{start.stdout}")
                     snd_started = True
             elif start.stderr:
                 sys.stderr.write(f"mpc play error. Full command result:{start}. Ideally mpc clear and add here")
@@ -56,8 +56,8 @@ def listen():
         elif snd_started and is_silent(snd_data, STOP_THRESHOLD):
             sys.stdout.write(f"stop stream. Volume: {max(snd_data)}\n")
             stop = subprocess.run(["mpc", f"--host={hifipi_ip}","stop"], capture_output=True, text=True)
-            if stop.stdout: sys.stdout.write(f"mpc output:{stop.stdout}")
-            if stop.stderr: sys.stderr.write(f"mpc output:{stop.stderr}")
+            if stop.stdout: sys.stdout.write(f"mpc output:\n{stop.stdout}")
+            if stop.stderr: sys.stderr.write(f"mpc error output:\n{stop.stderr}")
             snd_started = False
 
         stream.stop_stream()
