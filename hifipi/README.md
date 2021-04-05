@@ -5,4 +5,4 @@ This raspberry pi will use a [Hifiberry](https://www.hifiberry.com/) hat (now it
 None
 
 ## TODO
-
+- [ ] Find out how to monitor and restart raspotify/airplay receivers if not working
