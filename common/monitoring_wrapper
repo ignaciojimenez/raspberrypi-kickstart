@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# Notification script
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+usage(){
+  echo "Usage: $(basename "$0") webhook-id path_to_script all_arguments"
+}
+
+E_NOARGS=85
+wh_regex="T\w*\/B\w*\/\w*"
+if [ -z ${1+x} ] || [ -z ${2+x} ]; then
+  usage
+  exit "$E_NOARGS"
+elif ! [[ $1 =~ $wh_regex ]]; then
+  echo "Webhook format invalid. Expected format $wh_regex"
+  usage
+  exit 0
+fi
+
+wh=$1
+webmonitor_hook="https://hooks.slack.com/services/$wh"
+
+script_path=$2
+script_args="${*:3}"
+date_started=$(date +"%F_%T.%3N")
+execution_result=$($script_path "$script_args")
+date_finished=$(date +"%F_%T.%3N")
+
+content_start="{\"text\":\""
+host_script="\`$(hostname)\` - \`${script_path} ${script_args}\` executed\n"
+date_started_fmt="Started: \`${date_started}\`\n"
+formatted_result="Result:\n\`\`\`${execution_result}\`\`\`\n"
+date_finished_fmt="Finished: \`${date_finished}\`"
+content_end="\"}"
+
+content=$content_start$host_script$date_started_fmt$formatted_result$date_finished_fmt$content_end
+echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$webmonitor_hook")"
