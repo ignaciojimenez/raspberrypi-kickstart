@@ -51,3 +51,19 @@ ha_name="home-assistant"
 docker run --init -d --restart unless-stopped --name="${ha_name}" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
 # Now lets install hacs https://hacs.xyz/
 docker exec -i ${ha_name} wget -q -O - https://hacs.xyz/install | bash -
+
+echo "------------------------------------------------------"
+echo "Moving update_ha script to ${HOME}/.scripts and added it to crontab"
+echo "------------------------------------------------------"
+cp update_ha ~/.scripts
+sudo chmod +x ~/.scripts/update_ha
+# install crontab to create ha autoupdates
+echo "$(echo "@monthly /bin/bash /home/${USER}/.scripts/monitoring_wrapper $(cat /home/${USER}/.scripts/logging_token) /home/${USER}/.scripts/update_ha >> /home/${USER}/.log/update_ha 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+
+echo "------------------------------------------------------"
+echo "Moving testrunningcontainer script to ${HOME}/.scripts and added it to crontab"
+echo "------------------------------------------------------"
+cp testrunningcontainer ~/.scripts
+sudo chmod +x ~/.scripts/testrunningcontainer
+# install crontab to check for running container and restart if needed
+echo "$(echo "@monthly /bin/bash /home/${USER}/.scripts/testrunningcontainer $(cat /home/${USER}/.scripts/alert_token) ${ha_name} >> /home/${USER}/.log/testrunningcontainer 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
