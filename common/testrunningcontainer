@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Script to detect containers not running
+
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
+usage(){
+  echo "Usage: $(basename "$0") webhook-id container_name"
+}
+
+E_NOARGS=85
+wh_regex="T\w*\/B\w*\/\w*"
+if [ -z ${1+x} ] || [ -z ${2+x} ] ; then
+  usage
+  exit "$E_NOARGS"
+elif ! [[ $1 =~ $wh_regex ]]; then
+  echo "Webhook format invalid. Expected format $wh_regex"
+  usage
+  exit 0
+fi
+
+#./testvolumequota $(cat token) / 60
+wh=$1
+container=$2
+
+slack_wh="https://hooks.slack.com/services/$wh"
+
+notokfile=${container//\//_}_notok
+if [ "$( docker container inspect -f '{{.State.Status}}' $container )" != "running" ]; then
+  echo "$(date) - $(basename "$0") - ERROR: $container not running"
+  docker stop $container
+  docker rm $container
+  docker run --init -d --restart unless-stopped --name="${container}" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
+  if [ "$( docker container inspect -f '{{.State.Status}}' $container )" != "running" ]; then
+    if ! test -f "${notokfile}"; then
+      content="{\"text\":\"\`$(hostname)\` - \`${container}\` is not running\n \`\`\`$(docker ps)\`\`\` \"}"
+      echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$slack_wh")"
+      touch "${notokfile}"
+    fi
+  elif test -f "${notokfile}"; then
+    echo "$(date) - $(basename $0) - $container is again running"
+    content="{\"text\":\"\`$(hostname)\` - \`${container}\` is again running\n \`\`\`$(docker ps)\`\`\` \"}"
+    echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$slack_wh")"
+    rm "${notokfile}"
+  fi
+elif test -f "${notokfile}"; then
+  echo "$(date) - $(basename $0) - $container is again running"
+  content="{\"text\":\"\`$(hostname)\` - \`${container}\` is again running\n \`\`\`$(docker ps)\`\`\` \"}"
+  echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$slack_wh")"
+  rm "${notokfile}"
+fi
