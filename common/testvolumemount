@@ -27,7 +27,7 @@ mnt=$2
 
 slack_wh="https://hooks.slack.com/services/$wh"
 
-notokfile=${mnt//\//_}_notok
+notokfile=${mnt//\//_}_mount_notok
 if ! grep -qs ${mnt} /proc/mounts; then
   echo "$(date) - $(basename "$0") - ERROR: Disk volume $mnt not mounted"
   sudo umount -a || true
