@@ -12,7 +12,7 @@ usage(){
 
 E_NOARGS=85
 wh_regex="T\w*\/B\w*\/\w*"
-if [ -z ${1+x} ] || [ -z ${2+x} ] || [ -z ${3+x} ]; then
+if [ -z ${1+x} ] || [ -z ${2+x} ] ; then
   usage
   exit "$E_NOARGS"
 elif ! [[ $1 =~ $wh_regex ]]; then
