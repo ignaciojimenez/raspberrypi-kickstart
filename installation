@@ -126,10 +126,16 @@ cp common/testvolumemount ~/.scripts
 sudo chmod +x ~/.scripts/testvolumemount
 
 # we gather the alert token for notifications
-echo -n "Please enter alert_token for slack notifications:"
+echo -n "Please enter alert_token for slack webhook:"
 read -r -s alert_token
 echo "$alert_token" > ~/.scripts/alert_token
 chmod 400 ~/.scripts/alert_token
+
+# we gather the logging token for notifications
+echo -n "Please enter logging_token for slack webhook:"
+read -r -s logging_token
+echo "$logging_token" > ~/.scripts/logging_token
+chmod 400 ~/.scripts/logging_token
 
 echo "------------------------------------------------------"
 echo "adding capacity monitoring in root folder"
