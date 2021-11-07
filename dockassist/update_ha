@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# 
+# Script to update home-assistant
+
+echo [$(date)] " home assistant update started"
+ha_name="home-assistant"
+docker stop "${ha_name}"
+docker rm "${ha_name}"
+docker pull homeassistant/raspberrypi4-homeassistant:stable
+docker run --init -d --restart unless-stopped --name="${ha_name}" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
