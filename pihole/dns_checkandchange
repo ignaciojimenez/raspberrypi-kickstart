@@ -6,13 +6,10 @@ set -e          # stop on errors
 set -u          # stop on unset variables
 set -o pipefail # stop on pipe failures
 
-if [ "$(dig +short am.i.mullvad.net)" ]; then
-  vpn_up=$(curl -s https://am.i.mullvad.net/json | jq .mullvad_exit_ip)
-else
-  vpn_up=false
-fi
+ip="10.64.0.1"
+vpn_up=$(/bin/ping -c 1 "$ip" > /dev/null && echo "true" || echo "false")
 
-VPN_DNS="10.64.0.1#53"
+VPN_DNS="$ip#53"
 CLOUDFLARE_DNS=1.1.1.1
 
 case "${vpn_up}" in
