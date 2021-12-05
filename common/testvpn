@@ -7,11 +7,12 @@ set -u          # stop on unset variables
 set -o pipefail # stop on pipe failures
 
 usage(){
-  echo "Usage: $(basename "$0") webhook-id interface"
+  echo "Usage: $(basename "$0") webhook-id ip"
 }
 
 E_NOARGS=85
 wh_regex="T\w*\/B\w*\/\w*"
+ip_regex='\b((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}\b'
 if [ -z ${1+x} ] || [ -z ${2+x} ]; then
   usage
   exit "$E_NOARGS"
@@ -19,39 +20,31 @@ elif ! [[ $1 =~ $wh_regex ]]; then
   echo "Webhook format invalid. Expected format $wh_regex"
   usage
   exit 0
+elif ! [[ $2 =~ $ip_regex ]]; then
+  echo "IP format invalid. Expected format $ip_regex"
+  usage
+  exit 0
 fi
 
 wh=$1
-iface=$2
+ip=$2
 
-endpoint="am.i.mullvad.net"
-grep_result=$(host -4 $endpoint | grep 'not found' || true)
-
-if [ "$grep_result" == "" ]; then
-  result=$(sudo curl -s --interface "$iface" https://$endpoint/json || true)
-  if [ "$result" == "" ]; then
-    result="Interface ${iface} cannot reach Internet"
-    vpn_up=false
-  else
-    vpn_up=$(echo "$result" | jq .mullvad_exit_ip)
-  fi
-else
-  result=$grep_result
-  vpn_up=false
-fi
+ping_output=$(/bin/ping -c 1 "$ip" > /dev/null && echo "ok" || echo "failed")
+# for router include vpn interface
+# ping_output=$(/bin/ping -c -I wg0 1 "$ip" > /dev/null && echo "ok" || echo "failed")
 
 webmonitor_hook="https://hooks.slack.com/services/$wh"
 notokfile=vpn_down
-if [ "$vpn_up" != "true" ]; then
+if [ "$ping_output" != "ok" ]; then
   echo "$(date) - $(basename "$0") - VPN down"
   if ! test -f "${notokfile}"; then
-    content="{\"text\":\"\`$(hostname)\` - VPN is not reachable via - \`${iface}\` \n \`\`\`${result}\`\`\` \"}"
+    content="{\"text\":\"\`$(hostname)\` - VPN IP:\`${ip}\` is not reachable \n \"}"
     echo "$(date) - $(basename "$0") - Calling webhook curl -s -X POST -H Content-type: application/json --data \"${content}\" \$webmonitor_hook"
     echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$webmonitor_hook")"
     touch "${notokfile}"
   fi
 elif test -f "${notokfile}"; then
-  content="{\"text\":\"\`$(hostname)\` - VPN reachable again via - \`${iface}\` \"}"
+  content="{\"text\":\"\`$(hostname)\` - VPN IP:\`${ip}\` reachable again \"}"
   echo "$(date) - $(basename "$0") - VPN is up again. Calling webhook: curl -s -X POST -H Content-type: application/json --data \"${content}\" \$webmonitor_hook"
   echo "$(date) - $(basename "$0") - Webhook result: $(curl -s -X POST -H 'Content-type: application/json' --data "${content}" "$webmonitor_hook")"
   rm "${notokfile}"
