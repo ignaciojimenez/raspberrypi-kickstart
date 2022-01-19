@@ -84,6 +84,7 @@ move_image() {
   else
     download_url=$2
   fi
+  # TODO check if file exists and remove it if it does
   curl -s -L -O -J "${download_url}"
   compressed_file=${download_url##*/}
   echo "Downloaded url: ${download_url}" >&2
@@ -99,7 +100,7 @@ move_image() {
   echo "Unmounting device: diskutil unmountDisk ${1}" >&2
   diskutil unmountDisk "${1}"
   file_substring=$(echo "${compressed_file}" | cut -d . -f 1)
-  img_file=$(find . \( -name '*.img' -and -name "$file_substring*" \) -d 1)
+  img_file=$(find . \( -name '*.img' -and -name "$file_substring*" \) -maxdepth 1)
   echo "Flashing device: sudo dd bs=1m if=${img_file} of=/dev/r${1##*/}" >&2
   sudo dd bs=1m if="${img_file}" of=/dev/r"${1##*/}"
   echo "Removing temp files: rm ${file_substring}*" >&2
