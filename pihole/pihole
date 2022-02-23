@@ -88,8 +88,9 @@ sudo systemctl disable mongodb
 # Controller portal https://${IP}:8443
 
 echo "------------------------------------------------------"
-echo "Adding pihole update to update script"
+echo "Adding pihole update to update script and introducing a delay to not impact connectivity for other hosts"
 echo "------------------------------------------------------"
+sed -i '5isleep 30m' ~/.scripts/update
 sed -i '7ipihole -up' ~/.scripts/update
 
 echo "------------------------------------------------------"
@@ -106,10 +107,11 @@ url="https://localhost:8443/manage/account/login?redirect=%2Fmanage%2Faccount%2F
 text="unifi-network-app-container"
 echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat ${alert_token_path}) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
-url="https://www.alisios.es"
-text="alisios_sailing"
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat ${alert_token_path}) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+# this is failing with remote networks :/
+#url="https://www.alisios.es"
+#text="alisios_sailing"
+#echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat ${alert_token_path}) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
 
-url="https://www.recordsdelmundo.es"
-text="esconder"
-echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat ${alert_token_path}) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
+#url="https://www.recordsdelmundo.es"
+#text="esconder"
+#echo "$(echo "@hourly /bin/bash /home/${USER}/.scripts/testweb \$(cat ${alert_token_path}) ${url} ${text} >> /home/${USER}/.log/web_$(echo "$url" | awk -F/ '{print $3}') 2>&1" ; crontab -u "${USER}" -l)" | crontab -u "${USER}" -
