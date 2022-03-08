@@ -2,6 +2,10 @@
 # 
 # Script to update periodically the pi
 
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
 echo [$(date)] " update started"
 sudo apt-get --yes clean
 sudo apt-get --yes update && sudo apt-get --yes upgrade && sudo apt-get --yes full-upgrade

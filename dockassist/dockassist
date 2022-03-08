@@ -2,6 +2,10 @@
 # 
 # Script to kickstart dockassist specific configurations
 
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
 echo
 echo "------------------------------------------------------"
 echo "Beginning Dockassist script"

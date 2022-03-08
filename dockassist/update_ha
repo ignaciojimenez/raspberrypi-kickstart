@@ -2,6 +2,10 @@
 # 
 # Script to update home-assistant
 
+set -e          # stop on errors
+set -u          # stop on unset variables
+set -o pipefail # stop on pipe failures
+
 echo [$(date)] " home assistant update started"
 ha_name="home-assistant"
 docker stop "${ha_name}"
