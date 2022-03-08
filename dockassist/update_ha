@@ -8,7 +8,11 @@ set -o pipefail # stop on pipe failures
 
 echo [$(date)] " home assistant update started"
 ha_name="home-assistant"
+echo [$(date)] " Running user is:${USER}"
+USER="choco"
 docker stop "${ha_name}"
 docker rm "${ha_name}"
 docker pull homeassistant/raspberrypi4-homeassistant:stable
 docker run --init -d --restart unless-stopped --name="${ha_name}" -v /home/${USER}/homeassistant:/config --net=host homeassistant/raspberrypi4-homeassistant:stable
+# to check next time this fails -- see if mounted volume is actually mounted
+# docker inspect -f '{{ .Mounts }}' home-assistant
