@@ -145,7 +145,7 @@ echo "Installing mpc (mpd-client)"
 # Will be used to remotely control hifipi mpd server
 sudo apt-get install -y mpc
 
-hifipi_ip="10.30.80.100"
+hifipi_ip="10.30.40.100"
 my_ip=$(hostname -I | xargs)
 def_icecast_port="8000"
 # we clear previous playlists
@@ -157,12 +157,12 @@ remote_stream_name=$(mpc --host=${hifipi_ip} playlist)
 [[ $stream_name != "$remote_stream_name" ]] && echo "WARNING: remote stream was not properly configured"
 
 #basic mpc guidance
-#mpc --host=10.30.80.100 volume 100
-#mpc --host=10.30.80.100 clear
-#mpc --host=10.30.80.100 add http://10.30.80.101:8000/phono.ogg
-#mpc --host=10.30.80.100 playlist  --> returns $icecast_name
-#mpc --host=10.30.80.100 play
-#mpc --host=10.30.80.100 stop
+#mpc --host=${hifipi_ip} volume 100
+#mpc --host=${hifipi_ip} clear
+#mpc --host=${hifipi_ip} add http://10.30.80.101:8000/phono.ogg
+#mpc --host=${hifipi_ip} playlist  --> returns $icecast_name
+#mpc --host=${hifipi_ip} play
+#mpc --host=${hifipi_ip} stop
 
 echo "------------------------------------------------------"
 echo "detect audio script deployment"

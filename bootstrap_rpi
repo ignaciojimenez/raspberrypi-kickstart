@@ -88,11 +88,11 @@ hifipi() {
     #echo 'dt_overlays="hifiberry-dacplus"' >> "${1}"
     # not anymore just in case we use it for retropie
     #echo "gpu_mem=16"
-    echo 'dt_overlays="disable-bt"'
-    echo "ifname=wlan0"
-    echo "wlan_country=NL"
-    echo "wlan_ssid=${wifi_ssid}"
-    echo "wlan_psk=$(get_wifi_pass)"
+    echo 'dt_overlays="disable-wifi,disable-bt"'
+    # echo "ifname=wlan0"
+    # echo "wlan_country=NL"
+    # echo "wlan_ssid=${wifi_ssid}"
+    # echo "wlan_psk=$(get_wifi_pass)"
   }  >> "${1}"
   echo "OK"
 }
