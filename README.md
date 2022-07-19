@@ -1,4 +1,8 @@
 # Raspberrypi-kickstart
+
+## Deprecation
+This repo has been deprecated in favour of https://github.com/ignaciojimenez/raspberrypi-ansible due to lack of maintenance of the base project https://github.com/FooDeas/raspberrypi-ua-netinst
+
 ## Description
 This is a collection of scripts to kickstart raspberry pi's using a minimal raspbian installation based on https://github.com/FooDeas/raspberrypi-ua-netinst
 ## Usage
